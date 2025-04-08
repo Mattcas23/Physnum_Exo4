@@ -9,6 +9,11 @@
 
 using namespace std;
 
+double r1 ; 
+double epsilon_a ; 
+double epsilon_b ; 
+double epsilon_0 ; 
+
 const double PI=3.1415926535897932384626433832795028841971e0;
 // Résolution d'un système d'équations linéaires par élimination de
 // Gauss-Jordan:
@@ -39,23 +44,19 @@ solve(const vector<T>& diag,
 }
 
 //TODO build the epsilon function
-double epsilon(const std::vector<double>& r, double r1, double epsilon_a, double epsilon_b) {
-    double eps = 0;
-    for (size_t i = 0; i < r.size(); ++i) {
-        if (0 <= r[i] && r[i] < r1) {
-            eps = epsilon_a;
-        } else {
-            eps = epsilon_b;
-        }
-    }
-    return eps;
+double epsilon(double r, double rone = r1, double eps_a = epsilon_a , double eps_b = epsilon_b) {
+   
+    if ( r > rone )
+    { return eps_a ; }
+	else 
+	{ return eps_b ; }
 }
 
 
 //TODO build the rho_epsilon function (rho_lib / epsilon_0)
-double rho_epsilon(double rho_lib, double epsilon_0)
+double rho_epsilon(double r , double rho_lib = 0 , double eps_0 = epsilon_0)
 {
-    return rho_lib / epsilon_0;
+    return rho_lib / eps_0;
 }
 
 int
