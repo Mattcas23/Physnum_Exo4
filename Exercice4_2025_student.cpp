@@ -184,14 +184,14 @@ main(int argc, char* argv[])
 			diagonal[k] = midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; // pas de k-1 => intégrale gauche nulle 
 			lower[k]    = 0 ; // pas de k-1 => intégrale nulle 
 			upper[k]    = - midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
-			rhs[k] 		= pow(h[k],2) * rho_epsilon (midPoint[k]) / 2  ; // Faux : remplacer par la bonne formule // pas de k-1 => intégrale gauche nulle 	
+			rhs[k] 		= h[k] * midPoint[k] * rho_epsilon (midPoint[k]) / 2 ; // Faux : remplacer par la bonne formule // pas de k-1 => intégrale gauche nulle 	
 		}   
 		else 
 		{
 			diagonal[k] = midPoint[k-1] * epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) / (2 * h[k-1]) + midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
 			lower[k]    = - midPoint[k-1] * epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) / (2 * h[k-1]) ; 
 			upper[k]    = - midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
-			rhs[k] 		= pow(h[k-1],2) * rho_epsilon (midPoint[k - 1]) / 2 + pow(h[k],2) * rho_epsilon (midPoint[k]) / 2   ; // Faux : remplacer par la bonne formule 
+			rhs[k] 		= h[k-1] * midPoint[k-1] * rho_epsilon (midPoint[k - 1]) / 2 + h[k] * midPoint[k] * rho_epsilon (midPoint[k]) / 2   ; // Faux : remplacer par la bonne formule 
 		}
 
     }
@@ -212,8 +212,8 @@ main(int argc, char* argv[])
     vector<double> D(pointCount - 1, 0);
     for (int i = 0; i < E.size(); ++i) {
         // TODO calculate E and D
-        E[i] = 0.0;
-        D[i] = 0.0; 
+        E[i] = rhs[i]/ ( r[i] * epsilon_0 * epsilon(r[i],r1,epsilon_a,epsilon_b) ) ;
+        D[i] = rhs[i]/r[i]; 
     }
 
     // Export data
