@@ -122,16 +122,16 @@ main(int argc, char* argv[])
     
     // cout << h.size() << endl ; 
         
-	for ( size_t i = 0 ; i < N1 ; ++i  )
+	for ( size_t i = 0 ; i < N1 ; ++i  ) // construction de h (première moitié)
 	{ h[i] = h1 ; }
 		
-	for ( size_t i = N1 ; i < pointCount - 1 ; ++i  )
+	for ( size_t i = N1 ; i < pointCount - 1 ; ++i  ) // construction de h (deuxième moitié)
 	{ h[i] = h2 ; }
 	
 	//for ( size_t i = 0 ; i < pointCount - 1  ; ++i  )
-	//{ cout << i + 1 << ' ' << h[i] << endl ; }
+	//{ cout << i << ' ' << h[i] << endl ; }
 	
-	for ( size_t i = 0 ; i < pointCount - 1 ; ++i  )
+	for ( size_t i = 0 ; i < pointCount - 1 ; ++i  ) // construction du mid point 
 	{ 
 		if ( i == 0 )
 		{ midPoint[i] = h1/2 ; }
@@ -149,8 +149,19 @@ main(int argc, char* argv[])
 		}
 	 }
 	 
+	for (size_t i = 0 ; i < pointCount ; ++i) // construction du vecteur position
+	{
+		if ( i == 0 )
+		{ r[i] = 0 ; }
+		else
+		{ r[i] = r[i-1] + h[i-1] ; }
+	}
+	
+	//for ( size_t i = 0 ; i < pointCount ; ++i  )
+	//{ cout << i  << ' ' << r[i] << endl ; }
+	
 	//for ( size_t i = 0 ; i < pointCount - 1  ; ++i  )
-	//{ cout << i + 1 << ' ' << midPoint[i] << endl ; }
+	//{ cout << i << ' ' << midPoint[i] << endl ; }
 	
 	//cout << "rho_eps : " << rho_epsilon(2) << endl ; 
     
