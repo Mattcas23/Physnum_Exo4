@@ -9,10 +9,8 @@
 
 using namespace std;
 
-double r1 ; 
-double epsilon_a ; 
-double epsilon_b ; 
-double epsilon_0 ; 
+
+const double epsilon_0 = 8.85418782e-12 ; 
 
 const double PI=3.1415926535897932384626433832795028841971e0;
 // Résolution d'un système d'équations linéaires par élimination de
@@ -44,9 +42,9 @@ solve(const vector<T>& diag,
 }
 
 //TODO build the epsilon function
-double epsilon(double r, double rone = r1, double eps_a = epsilon_a , double eps_b = epsilon_b) {
+double epsilon(double r, double r1, double eps_a , double eps_b ) {
    
-    if ( r > rone )
+    if ( r > r1 )
     { return eps_a ; }
 	else 
 	{ return eps_b ; }
@@ -54,22 +52,19 @@ double epsilon(double r, double rone = r1, double eps_a = epsilon_a , double eps
 
 
 //TODO build the rho_epsilon function (rho_lib / epsilon_0)
-double rho_epsilon(double r , double rho_lib = 0 , double eps_0 = epsilon_0)
+double rho_epsilon(double r , double rho_lib = 1 , double eps_0 = epsilon_0 )
 {
     return rho_lib / eps_0;
 }
 
 int
 main(int argc, char* argv[])
-{
-	
-	cout << "ici" << endl ; 
-    
+{    
 
     // USAGE: Exercise4 [configuration-file] [<settings-to-overwrite> ...]
 
     // Read the default input
-    string inputPath = "configuration.in.example";
+    string inputPath = "/Users/a-x-3/Desktop/Exercice4_2025_student/configuration.in.example";
     // Optionally override configuration file.
     if (argc > 1)
         inputPath = argv[1];
@@ -92,9 +87,6 @@ main(int argc, char* argv[])
     // For the analytical comparison
     const bool uniform_rho_case = configFile.get<bool>("uniform_rho_case");
     
-    // Permitivité relative du vide 
-    const double epsilon_0 = configFile.get<double>("epsilon_0");
-        
     // Dielectric relative permittivity
     const double epsilon_a = configFile.get<double>("epsilon_a");
     const double epsilon_b = configFile.get<double>("epsilon_b");
@@ -128,18 +120,18 @@ main(int argc, char* argv[])
         
     // TODO build the h vector and midpoint vector
     
-    cout << "ici " << endl ; 
-    
+    // cout << h.size() << endl ; 
+        
 	for ( size_t i = 0 ; i < N1 ; ++i  )
 	{ h[i] = h1 ; }
 		
-	for ( size_t i = N1 ; i < pointCount ; ++i  )
+	for ( size_t i = N1 ; i < pointCount - 1 ; ++i  )
 	{ h[i] = h2 ; }
 	
-	for ( size_t i = 0 ; i < pointCount ; ++i  )
-	{ cout << h[i] << endl ; }
+	//for ( size_t i = 0 ; i < pointCount - 1  ; ++i  )
+	//{ cout << i + 1 << ' ' << h[i] << endl ; }
 	
-	for ( size_t i = 0 ; i < pointCount ; ++i  )
+	for ( size_t i = 0 ; i < pointCount - 1 ; ++i  )
 	{ 
 		if ( i == 0 )
 		{ midPoint[i] = h1/2 ; }
@@ -156,13 +148,16 @@ main(int argc, char* argv[])
 			}
 		}
 	 }
+	 
+	//for ( size_t i = 0 ; i < pointCount - 1  ; ++i  )
+	//{ cout << i + 1 << ' ' << midPoint[i] << endl ; }
+	
+	//cout << "rho_eps : " << rho_epsilon(2) << endl ; 
     
     
     // N1 intervalles équidistants entre r = 0 et r = r1
     // N2 intervalles équidistants entre r = r1 et r = R 
     
-    cout << "ici" << endl ; 
-
     // Construct the matrix and right-hand side
     vector<double> diagonal(pointCount, 1.0);  // Diagonal
     vector<double> lower(pointCount - 1, 0.0); // Lower diagonal
@@ -175,16 +170,16 @@ main(int argc, char* argv[])
         
         if ( k == 0 )
         {
-			diagonal[k] = midPoint[k] * epsilon(midPoint[k]) / (2 * h[k]) ; // pas de k-1 => intégrale gauche nulle 
+			diagonal[k] = midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; // pas de k-1 => intégrale gauche nulle 
 			lower[k]    = 0 ; // pas de k-1 => intégrale nulle 
-			upper[k]    = - midPoint[k] * epsilon(midPoint[k]) / (2 * h[k]) ; 
+			upper[k]    = - midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
 			rhs[k] 		= pow(h[k],2) * rho_epsilon (midPoint[k]) / 2  ; // Faux : remplacer par la bonne formule // pas de k-1 => intégrale gauche nulle 	
 		}   
 		else 
 		{
-			diagonal[k] = midPoint[k-1] * epsilon(midPoint[k-1]) / (2 * h[k-1]) + midPoint[k] * epsilon(midPoint[k]) / (2 * h[k]) ; 
-			lower[k]    = - midPoint[k-1] * epsilon(midPoint[k-1]) / (2 * h[k-1]) ; 
-			upper[k]    = - midPoint[k] * epsilon(midPoint[k]) / (2 * h[k]) ; 
+			diagonal[k] = midPoint[k-1] * epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) / (2 * h[k-1]) + midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
+			lower[k]    = - midPoint[k-1] * epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) / (2 * h[k-1]) ; 
+			upper[k]    = - midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
 			rhs[k] 		= pow(h[k-1],2) * rho_epsilon (midPoint[k - 1]) / 2 + pow(h[k],2) * rho_epsilon (midPoint[k]) / 2   ; // Faux : remplacer par la bonne formule 
 		}
 
