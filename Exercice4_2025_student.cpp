@@ -185,7 +185,12 @@ main(int argc, char* argv[])
 			lower[k]    = 0 ; // pas de k-1 => intégrale nulle 
 			upper[k]    = - midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
 			rhs[k] 		= h[k] * midPoint[k] * rho_epsilon (midPoint[k],rho0) / 2 ; 
+<<<<<<< HEAD
         }else 
+=======
+		}
+		else 
+>>>>>>> 6a245abd93cd2a0226eb35243f8ecbdbb94cc402
 		{
 			diagonal[k] = midPoint[k-1] * epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) / (2 * h[k-1]) + midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
 			lower[k]    = - midPoint[k-1] * epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) / (2 * h[k-1]) ; 
@@ -211,8 +216,8 @@ main(int argc, char* argv[])
     vector<double> D(pointCount - 1, 0);
     for (int i = 0; i < E.size(); ++i) {
         // TODO calculate E and D
-        E[i] = rhs[i]/ ( r[i] * epsilon(r[i],r1,epsilon_a,epsilon_b) ) ;
-        D[i] = rhs[i] * epsilon_0 /r[i]; 
+        E[i] = - (phi[i] - phi[i+1]) / h[i] ; 
+        D[i] = epsilon_0 * epsilon(midPoint[i], r1 , epsilon_a , epsilon_b ) * E[i] ; 
     }
 
     // Export data
