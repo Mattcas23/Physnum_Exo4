@@ -64,7 +64,7 @@ main(int argc, char* argv[])
     // USAGE: Exercise4 [configuration-file] [<settings-to-overwrite> ...]
 
     // Read the default input
-    string inputPath = "/Users/a-x-3/Desktop/Exercice4_2025_student/configuration.in.example";
+    string inputPath = "/Users/Matte/Desktop/EPFL/BA4/Physnum/Physnum_Exo4/configuration.in.example";
     // Optionally override configuration file.
     if (argc > 1)
         inputPath = argv[1];
@@ -96,13 +96,13 @@ main(int argc, char* argv[])
     
     // Discretization
     const int N1 = configFile.get<int>("N1");
-    const int N2 = configFile.get<int>("N2");
+    const int N2 = N1; //configFile.get<int>("N2");
     
     // Fichiers de sortie:
     string fichier = configFile.get<string>("output");
-    string fichier_phi = fichier+"/Users/a-x-3/Desktop/Exercice4_2025_student/_phi.out";
-    string fichier_E   = fichier+"/Users/a-x-3/Desktop/Exercice4_2025_student/_E.out";
-    string fichier_D   = fichier+"/Users/a-x-3/Desktop/Exercice4_2025_student/_D.out";
+    string fichier_phi = "/Users/Matte/Desktop/EPFL/BA4/Physnum/Physnum_Exo4/phi"+fichier;
+    string fichier_E   = "/Users/Matte/Desktop/EPFL/BA4/Physnum/Physnum_exo4/E"+fichier;
+    string fichier_D   = "/Users/Matte/Desktop/EPFL/BA4/Physnum/Physnum_Exo4/D"+fichier;
 
     // Create our finite elements
     const int pointCount = N1 + N2 + 1; // Number of finite elements
@@ -114,7 +114,7 @@ main(int argc, char* argv[])
 
     //TODO build the nodes vector r
     
-    // Arrays initialization
+    // Arrays 
     vector<double> h(pointCount-1); 	// Distance between grid points
     vector<double> midPoint(pointCount-1);  // Midpoint of each grid element
         
@@ -185,7 +185,7 @@ main(int argc, char* argv[])
 			lower[k]    = 0 ; // pas de k-1 => intégrale nulle 
 			upper[k]    = - midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
 			rhs[k] 		= h[k] * midPoint[k] * rho_epsilon (midPoint[k],rho0) / 2 ; 
-		else 
+        }else 
 		{
 			diagonal[k] = midPoint[k-1] * epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) / (2 * h[k-1]) + midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
 			lower[k]    = - midPoint[k-1] * epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) / (2 * h[k-1]) ; 
