@@ -1,316 +1,264 @@
-import numpy as np
-import subprocess
-import matplotlib.pyplot as plt
-import pdb
-import os
-
-# Parameters
-# TODO adapt to what you need (folder path executable input filename)
-executable = r"/Users/Matte/Desktop/EPFL/BA4/Physnum/Physnum_Exo4/exe" #r"/Users/a-x-3/Desktop/Ex3_2024_student/exe"  # Name of the executable (NB: .exe extension is required on Windows)
-repertoire = r"/Users/Matte/Desktop/EPFL/BA4/Physnum/Physnum_Exo4"#r"/Users/a-x-3/Desktop/Ex3_2024_student"
-os.chdir(repertoire)
-
-input_filename = 'configuration.in.example'  # Name of the input file
-
-#----------------------------------------- Valeurs du Configfile --------------------------------- # 
-
-Values = np.genfromtxt("configuration.in.example" , comments = '//')
-
-tfin = Values[0,-1]
-ms = Values[1,-1]
-mj = Values[2,-1]
-rs= Values[3,-1]
-rj= Values[4,-1]
-G_grav = Values[5,-1]
-a   =  Values[6,-1]
-#eps    = Values[7,-1]
-alpha  = Values[8,-1]
-maxit  = Values[9,-1]
-output = Values[10,-1]
-sampling = Values[11,-1]
-vx0 = Values[12,-1]
-vy0 = Values[13,-1]
-x0 = Values[14,-1]
-y0 = Values[15,-1]
-#output = Values[16,-1]
-#nsteps = Values[17,-1]
-f = Values[18,-1]
-adaptative = Values[19,-1]
-jupyter = Values[20,-1]
-ma = Values[21,-1]
-Rg = Values[22,-1]
-
-# ---------------------------------------------------------------
-
-nsteps = np.array([ 60 ])*1e3
-
-eps = np.array( [0.01*i for i in range(1,11)])#,1e5,1e6,1e7,5e7,1e8,5e8])#[1000 , 3000 ,  5000 , 10000 , 20000])
-
-nsimul = len(nsteps)  # Number of simulations to perform ( pour un nombre de pas changeant )
-
-dt = tfin / nsteps
-
-energy = np.zeros(nsimul) # added 
-
-paramstr = 'nsteps'  # Parameter name to scan
-param = nsteps  # Parameter values to scan
-
-paramstr2 = 'eps'
-param2 = eps
-nsimul2 = len(eps)
-
-# ------------------------------------------- Simulations ---------------------------------------------
-
-if jupyter :
- print("Avec Jupyter")
- if Rg :
-     print("Référentiel RG")
- else : 
-     print("Référentiel R'")
-else :
- print("Sans Jupyter")
-
-
-
-if adaptative : # Simulations avec pas de temps adaptatif
-
- print("Pas de temps adaptatif")
-
- outputs = []  # List to store output file names
- convergence_list = []
- for i in range(nsimul2):
-     output_file = f"{paramstr2}={param2[i]}.out"
-     outputs.append(output_file)
-     cmd = f"{repertoire}{executable} {input_filename} {paramstr2}={param2[i]:.15g} output={output_file}"
-     cmd = f"{executable} {input_filename} {paramstr2}={param2[i]:.15g} output={output_file}"
-     print(cmd)
-     subprocess.run(cmd, shell=True)
-     print('Done.')
-
-else : # Simulations avec pas de temps fixe
-
- print("Pas de temps fixe")
-
- outputs = []  # List to store output file names
- convergence_list = []
- for i in range(nsimul):
-     output_file = f"{paramstr}={param[i]}.out"
-     outputs.append(output_file)
-     cmd = f"{repertoire}{executable} {input_filename} {paramstr}={param[i]:.15g} output={output_file}"
-     cmd = f"{executable} {input_filename} {paramstr}={param[i]:.15g} output={output_file}"
-     print(cmd)
-     subprocess.run(cmd, shell=True)
-     print('Done.')    
-
-Eerr = np.array([]) # erreur sur l'énergie mécanique
-
-jsteps_list = np.zeros(len(eps))
-
-if adaptative : # schéma à pas de temps adaptatif 
-
- for i in range(nsimul2):  # Iterate through the results of all simulations
-     data = np.loadtxt(outputs[i])  # Load the output file of the i-th simulation
-     t = data[:, 0]
-     vx = data[-1, 1]  # final position, velocity, energy
-     vy = data[-1, 2]
-     xx = data[-1, 3]
-     yy = data[-1, 4]
-     En = data[-1, 5]
-     jsteps = data[-1,6] # nombre de pas de temps total pour la simulation
-     print(jsteps)
-
-     convergence_list.append(xx)
-     jsteps_list[i] = jsteps
-     Eerr = np.append( Eerr , abs(data[1,5] - data[-1,5]) ) # erreur sur l'Emec : différence entre la valeur initiale et la valeur finale 
-
-else : # schéma à pas de temps fixe 
-
- for i in range(nsimul):
-     data = np.loadtxt(outputs[i])  # Load the output file of the i-th simulation
-     t = data[:, 0]
-     vx = data[-1, 1]  # final position, velocity, energy
-     vy = data[-1, 2]
-     xx = data[-1, 3]
-     yy = data[-1, 4]
-     En = data[-1, 5]
-
-     convergence_list.append(xx)
-     Eerr = np.append( Eerr , abs(data[1,5] - data[-1,5]) ) # erreur sur l'Emec : différence entre la valeur initiale et la valeur finale
-
-lw = 1.5
-fs = 16
-
-# ---------------------------------------- Zones Plots ---------------------------------------- #
-
-# Vitesse max et min en y 
-print( f" max(vy) = {max(abs(data[:,2]))}" )
-print( f" min(vy) = {min(abs(data[:,2]))}" )
-# Position max et min en x
-print( f" max(x) = {max((data[:,3])):.3e}" )
-print( f" min(x) = {min((data[:,3])):.3e}" )
-
-def Trajectoires_Multiples():
-    plt.figure()
-
-    # Boucle sur toutes les simulations avec différentes valeurs de eps
-    for i in range(nsimul2):
-        data = np.loadtxt(outputs[i])  # Charger les données
-        plt.plot(data[:, 3], data[:, 4], label=f"eps = {eps[i]:.1e}")
-
-    # Soleil
-    x_s = - a * mj / (mj + ms)
-    plt.scatter(x_s, 0, marker='o', s=50, color='gold', label="Soleil", zorder=3)
-
-    # Réglages du graphique
-    plt.xlabel('x [m]', fontsize=20)
-    plt.ylabel('y [m]', fontsize=20)
-    plt.axis('equal')
-    plt.legend()
-    plt.show()
-
-
-
-def Trajectoire () :
-    print("vx: ", data[0:4,1],"vy : ", data[0:4,2], "x: ", data[0:4,3],"y: ", data[0:4,4])
-    # Calcul des distances au Soleil pour chaque point de trajectoire
-    r = np.sqrt(data[:,3]**2 + data[:,4]**2)
-
-    # Distance maximale (aphélie)
-    r_max = np.max(r)
-    idx_max = np.argmax(r)  # Indice correspondant
-
-    # Distance minimale (périhélie)
-    r_min = np.min(r)
-    idx_min = np.argmin(r)  # Indice correspondant
-
-    # Coordonnées correspondantes
-    x_max, y_max = data[idx_max, 3], data[idx_max, 4]
-    x_min, y_min = data[idx_min, 3], data[idx_min, 4]
-    v_min, v_max = np.sqrt(data[idx_max, 1]**2+ data[idx_max, 2]**2) , np.sqrt(data[idx_min, 1]**2+ data[idx_min, 2]**2)
-
-    # Affichage des résultats
-    print(f"Aphélie: r_max = {r_max:.2e} m, coordonnées (x, y) = ({x_max:.2e}, {y_max:.2e}), vitesse min = {v_min:.2e}")
-    print(f"Périhélie: r_min = {r_min:.2e} m, coordonnées (x, y) = ({x_min:.2e}, {y_min:.2e}), vitesse max = {v_max:.2e}")
-
-    plt.figure()
-    Soleil  = plt.scatter(  - a * mj / (mj + ms) , 0 , marker = 'o' , s=10,  color = 'gold' , label = 'Soleil', zorder=3 )
-
-    if jupyter : # On affiche Jupyter
-
-     referentiel = "$R'$"
-     if Rg :
-         referentiel = "$R_G$"
-     plt.title(f"Référentiel {referentiel}",fontsize = fs - 2)
-     Jupyter = plt.scatter( a * ms / ( ms + mj ) ,0,marker = 'o' , color = 'brown',  label = "Jupyter" )
-
-    else : # On affiche la position minimale et maximale en x # -1.51e12 pk?
-
-     rmax = plt.scatter( data[idx_max, 3], data[idx_max, 4], marker = '^' , s=10, color = 'red' , label = f"Aphélie: r_max = {r_max:.2e} m, v_min = {v_min:.2e} m/s" , zorder=3 )
-     rmin = plt.scatter( data[idx_min, 3], data[idx_min, 4], marker = 'o' , s=10, color = 'red', label = f"Périhélie: r_min = {r_min:.2e} m, v_max = {v_max:.2e} m/s" , zorder=3)
-     plt.plot([x_min, x_max], [y_min, y_max], 'c-', label="Axe Aphélie-Périhélie")
-    #posinit = plt.scatter(data[0,3],data[0,4], marker = 'o' , color = 'grey' , label = "astéroide")
-    plt.plot(data[:, 3], data[:, 4], color = 'black' ,  label = '$n_{step} = $' + f"{nsteps[-1]:.0f}")
-    plt.xlabel('x [m]', fontsize=fs)
-    plt.ylabel('y [m]', fontsize=fs)
-    plt.axis('equal')
-    plt.legend()
-
-def Energie () : # Energie en fonction du temps 
-
- plt.figure()
- plt.plot(data[:, 0], data[:, 5], color = 'black' , label = '$n_{step} = $' + f"{nsteps[-1]:.0f}")
- plt.xlabel('t [s]', fontsize=fs)
- plt.ylabel('$E_{mec}$', fontsize=fs)
- plt.legend()
-
-def Emec_Err ( norder = 5 ) : # Erreur de l'Emec en fonction du temps ( fixe et sans jupyter : ordre 5 ; adaptatif : ordre ? )
-
- if adaptative : # Erreur avec pas de temps adaptatif
-
-     plt.figure()
-     plt.loglog( jsteps_list , Eerr,'k+-',linewidth = lw)
-     plt.loglog( jsteps_list , (1/pow(jsteps_list,norder))*1e14 , color  = 'red' , label = f"$N^{norder}$" , linestyle = 'dashed')
-     plt.xlabel("$j_{steps}$", fontsize=fs)
-     plt.ylabel('$\\delta_{E_{mec}}$', fontsize=fs)
-     plt.legend(fontsize = fs - 3)
-     plt.plot()
-
- else : # Erreur avec pas de temps fixe  
-
-     plt.figure()
-     plt.loglog( dt,Eerr,'k+-',linewidth = lw)
-     plt.loglog( dt , pow(dt,norder)/1e20 , color  = 'red' , label = f"$1/N^{norder}$" , linestyle = 'dashed')
-     plt.xlabel(f"$\\Delta t$ [s]", fontsize=fs)
-     plt.ylabel('$\\delta_{E_{mec}}$', fontsize=fs)
-     plt.legend(fontsize = fs - 3)
-     plt.plot()
-
-def PosFin_Conv ( norder = 5) : # convergeance sur la postion finale ( en x )
-
-
- if adaptative : # convergeance en fonction de jsteps ( Runge Kutta adaptatif : ordre 1 ? )
-
-     plt.figure()
-     plt.plot( pow(1/jsteps_list, norder) , convergence_list , 'k+-' , linewidth = lw ) 
-     #plt.loglog(1/jsteps_list, convergence_list)
-     plt.xlabel('$(1/j_{steps})$'+f"$^{norder}$", fontsize=fs)
-     plt.ylabel('$x_{final}$ [m]', fontsize=fs)
-     plt.xticks(fontsize=fs)
-     plt.yticks(fontsize=fs)
-     
-
- else : # convergeance en fonction de dt ( Runge Kutta fixe : ordre 4)
-
-     plt.figure()
-     plt.plot(dt**norder, convergence_list, 'k+-', linewidth=lw)
-     plt.xlabel(f"$(\\Delta t)^{norder}$ [s]", fontsize=fs)
-     plt.ylabel('$x_{final}$', fontsize=fs)
-     plt.xticks(fontsize=fs)
-     plt.yticks(fontsize=fs)
-     plt.grid(True)
-     plt.plot()
-
-def dts ( jstep ) : # Pas de temps au cours du temps et jsteps au cours du temps si adaptatif et jstep
-
- plt.figure()
- plt.plot( t, data[:,-1] , color = 'black' , label = '$\\epsilon = $' + f'{eps[-1]}') # à modifier 
- plt.xlabel('t [s] ', fontsize=fs)
- plt.ylabel('$dt$ [s]', fontsize=fs)    
- plt.legend()
-
- if adaptative and jstep :
-
-     plt.figure()
-     plt.plot(t,data[:,6], color = 'black' , label = '$\\epsilon = $' + f'{eps[-1]}' )
-     plt.xlabel('t [s]', fontsize=fs)
-     plt.ylabel('$j_{steps}$', fontsize=fs)    
-     plt.legend()
-
-
-def x() :
-
- fig, ax = plt.subplots(constrained_layout=True)
- ax.plot(t, data[:, 3], color = 'black' , label = '$n_{step} = $' + f"{nsteps[0]:.0f}")
- ax.set_xlabel('t [s]', fontsize=fs)
- ax.set_ylabel('x [m]', fontsize=fs)
- plt.legend()
-
-def vy () :
-
- fig, ax = plt.subplots(constrained_layout=True)
- ax.plot(t, data[:, 2], color = 'black' , label = '$n_{step} = $' + f"{nsteps[0]:.0f}")
- ax.set_xlabel('t [s]', fontsize=fs)
- ax.set_ylabel('vy [ms$^{-1}$]', fontsize=fs)
- plt.legend()
-
-#Trajectoires_Multiples()
-Trajectoire ()
-#Energie ()
-#PosFin_Conv ()
-#dts (True) 
-#x()
-#vy()
-#Emec_Err ()
-
-plt.show()
+#include <cmath>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <vector>
+
+#include "ConfigFile.tpp"
+
+
+using namespace std;
+
+
+const double epsilon_0 = 8.85418782e-12 ; 
+
+const double PI=3.1415926535897932384626433832795028841971e0;
+// Résolution d'un système d'équations linéaires par élimination de
+// Gauss-Jordan:
+template<class T>
+vector<T>
+solve(const vector<T>& diag,
+      const vector<T>& lower,
+      const vector<T>& upper,
+      const vector<T>& rhs)
+{
+    vector<T> solution(diag.size());
+    vector<T> new_diag(diag);
+    vector<T> new_rhs(rhs);
+
+    for (int i = 1; i < diag.size(); ++i) {
+        double pivot = lower[i - 1] / new_diag[i - 1];
+        new_diag[i] -= pivot * upper[i - 1];
+        new_rhs[i] -= pivot * new_rhs[i - 1];
+    }
+
+    solution[diag.size() - 1] =
+      new_rhs[diag.size() - 1] / new_diag[diag.size() - 1];
+
+    for (int i(diag.size() - 2); i >= 0; --i)
+        solution[i] = (new_rhs[i] - upper[i] * solution[i + 1]) / new_diag[i];
+
+    return solution;
+}
+
+//TODO build the epsilon function
+double epsilon(double r, double r1, double eps_a , double eps_b ) {
+   
+    if ( r > r1 )
+    { return eps_a ; }
+	else 
+	{ return eps_b ; }
+}
+
+
+//TODO build the rho_epsilon function (rho_lib / epsilon_0)
+double rho_epsilon(double r , double rho_lib = 1 , double eps_0 = epsilon_0 )
+{
+    return rho_lib / eps_0;
+}
+
+int
+main(int argc, char* argv[])
+{    
+
+    // USAGE: Exercise4 [configuration-file] [<settings-to-overwrite> ...]
+
+    // Read the default input
+    string inputPath = "/Users/a-x-3/Desktop/Exercice4_2025_student/configuration.in.example";
+    // Optionally override configuration file.
+    if (argc > 1)
+        inputPath = argv[1];
+
+    ConfigFile configFile(inputPath);
+    // Override settings
+    for (int i = 2; i < argc; i++)
+        configFile.process(argv[i]);
+
+    // Set verbosity level. Set to 0 to reduce printouts in console.
+    const int verbose = configFile.get<int>("verbose");
+    configFile.setVerbosity(verbose);
+
+    // Read geometrical inputs
+    const double R  = configFile.get<double>("R");
+    const double r1 = configFile.get<double>("r1");
+
+    const double rho0 = configFile.get<double>("rho0");
+
+    // For the analytical comparison
+    const bool uniform_rho_case = configFile.get<bool>("uniform_rho_case");
+    
+    // Dielectric relative permittivity
+    const double epsilon_a = configFile.get<double>("epsilon_a");
+    const double epsilon_b = configFile.get<double>("epsilon_b");
+    
+    // Boundary conditions
+    const double VR = configFile.get<double>("VR");
+    
+    // Discretization
+    const int N1 = configFile.get<int>("N1");
+    const int N2 = N1 ; // configFile.get<int>("N2");
+    
+    // Fichiers de sortie:
+    string fichier = configFile.get<string>("output");
+    string fichier_phi = "/Users/a-x-3/Desktop/Exercice4_2025_student/" + fichier + "_phi.out"; // /Users/a-x-3/Desktop/Exercice4_2025_student/
+    string fichier_E   = "/Users/a-x-3/Desktop/Exercice4_2025_student/" + fichier + "_E.out";
+    string fichier_D   = "/Users/a-x-3/Desktop/Exercice4_2025_student/" + fichier + "_D.out";
+
+    // Create our finite elements
+    const int pointCount = N1 + N2 + 1; // Number of finite elements
+    const double h1 = (r1 - 0) / N1;
+    const double h2 = (R  - r1) / N2;
+
+    // Position of elements
+    vector<double> r(pointCount);
+
+    //TODO build the nodes vector r
+    
+    // Arrays initialization
+    vector<double> h(pointCount-1); 	// Distance between grid points
+    vector<double> midPoint(pointCount-1);  // Midpoint of each grid element
+        
+    // TODO build the h vector and midpoint vector
+    
+    // cout << h.size() << endl ; 
+        
+	for ( size_t i = 0 ; i < N1 ; ++i  ) // construction de h (première moitié)
+	{ h[i] = h1 ; }
+		
+	for ( size_t i = N1 ; i < pointCount - 1 ; ++i  ) // construction de h (deuxième moitié)
+	{ h[i] = h2 ; }
+	
+	//for ( size_t i = 0 ; i < pointCount - 1  ; ++i  )
+	//{ cout << i << ' ' << h[i] << endl ; }
+	
+	for ( size_t i = 0 ; i < pointCount - 1 ; ++i  ) // construction du mid point 
+	{ 
+		if ( i == 0 )
+		{ midPoint[i] = h1/2 ; }
+		else 
+		{
+			if (i < N1)
+			{ midPoint[i] = midPoint[i-1] + h1 ; }
+			else 
+			{
+				if ( i == N1 )
+				{ midPoint[i] = midPoint[i-1] + h1/2 + h2/2 ; }
+				else 
+				{ midPoint[i] = midPoint[i-1] + h2/2 ; }
+			}
+		}
+	 }
+	 
+	for (size_t i = 0 ; i < pointCount ; ++i) // construction du vecteur position
+	{
+		if ( i == 0 )
+		{ r[i] = 0 ; }
+		else
+		{ r[i] = r[i-1] + h[i-1] ; }
+	}
+	
+	//for ( size_t i = 0 ; i < pointCount ; ++i  )
+	//{ cout << i  << ' ' << r[i] << endl ; }
+	
+	//for ( size_t i = 0 ; i < pointCount - 1  ; ++i  )
+	//{ cout << i << ' ' << midPoint[i] << endl ; }
+	
+	//cout << "rho_eps : " << rho_epsilon(2) << endl ; 
+    
+    
+    // N1 intervalles équidistants entre r = 0 et r = r1
+    // N2 intervalles équidistants entre r = r1 et r = R 
+    
+    // Construct the matrix and right-hand side
+    vector<double> diagonal(pointCount, 1.0);  // Diagonal
+    vector<double> lower(pointCount - 1, 0.0); // Lower diagonal
+    vector<double> upper(pointCount - 1, 0.0); // Upper diagonal
+    vector<double> rhs(pointCount, 0.0);       // Right-hand-side
+    
+    // Loop over the intervals: add the contributions to matrix and rhs   
+	for (int k = 0; k < pointCount-1; ++k) {
+        // TODO build the vectors diagonal, lower, upper, rhs
+        
+        if ( k == 0 )
+        {
+			diagonal[k] = midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; // pas de k-1 => intégrale gauche nulle 
+			lower[k]    = 0 ; // pas de k-1 => intégrale nulle 
+			upper[k]    = - midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
+			rhs[k] 		= h[k] * midPoint[k] * rho_epsilon (midPoint[k],rho0) / 2 ; 
+		}
+		else 
+		{
+			diagonal[k] = midPoint[k-1] * epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) / (2 * h[k-1]) + midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
+			lower[k]    = - midPoint[k-1] * epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) / (2 * h[k-1]) ; 
+			upper[k]    = - midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
+			rhs[k] 		= h[k-1] * midPoint[k-1] * rho_epsilon (midPoint[k - 1],rho0) / 2 + h[k] * midPoint[k] * rho_epsilon (midPoint[k],rho0) / 2   ; 
+		}
+
+    }
+        
+    
+
+    // TODO boundary condition at r=R (modify the lines below)
+    lower[lower.size() - 1]       = 0.0;
+    diagonal[diagonal.size() - 1] = 1.0;
+    rhs[rhs.size() - 1] = VR;
+
+
+    // Solve the system of equations
+    vector<double> phi = solve(diagonal, lower, upper, rhs);
+
+    // Calculate electric field E and displacement vector D
+    vector<double> E(pointCount - 1, 0);
+    vector<double> D(pointCount - 1, 0);
+    for (int i = 0; i < E.size(); ++i) {
+        // TODO calculate E and D
+        E[i] = - (phi[i] - phi[i+1]) / h[i] ; 
+        cout << E[i] << endl ; 
+        D[i] = epsilon_0 * epsilon(midPoint[i], r1 , epsilon_a , epsilon_b ) * E[i] ; 
+    }
+
+    // Export data
+    {
+        // Electric potential phi
+        ofstream ofs(fichier_phi);
+        ofs.precision(15);
+
+        if (r.size() != phi.size())
+            throw std::runtime_error("error when writing potential: r and "
+                                     "phi does not have size");
+
+        for (int i = 0; i < phi.size(); ++i) {
+            ofs << r[i] << " " << phi[i] << endl;
+        }
+    }
+
+    {
+        // Electric field E
+        ofstream ofs(fichier_E);
+        ofs.precision(15);
+
+        if (r.size() != (E.size() + 1))
+            throw std::runtime_error("error when writing electric field: size of "
+                                     "E should be 1 less than r");
+
+        for (int i = 0; i < E.size(); ++i) {
+            ofs << midPoint[i] << " " << E[i] << endl;
+        }
+    }
+    {
+        // Displacement field D
+        ofstream ofs(fichier_D);
+        ofs.precision(15);
+
+        if (E.size() != D.size())
+            throw std::runtime_error("error when writing displacement field: size of "
+                                     "D should be equal to E");
+
+        for (int i = 0; i < D.size(); ++i) {
+            ofs << midPoint[i] << " " << D[i] << endl;
+        }
+    }
+
+    return 0;
+}
 
