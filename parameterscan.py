@@ -23,7 +23,7 @@ Values = np.genfromtxt("/Users/Matte/Desktop/EPFL/BA4/Physnum/Physnum_Exo4/confi
 #uniform_rho_case = Values[4,-1]
 #VR = Values[5,-1]
 #rho0  =  Values[6,-1]
-N1    = Values[7,-1]
+N1    = Values[9,-1]
 #N2  = Values[8,-1]
 #maxit  = Values[9,-1]
 #output = Values[10,-1]
@@ -38,14 +38,14 @@ config_path = "/Users/Matte/Desktop/EPFL/BA4/Physnum/Physnum_Exo4/configuration.
 phi_output_path = "/Users/Matte/Desktop/EPFL/BA4/Physnum/Physnum_Exo4/phioutput.out"
 # ------------------------------------------- Simulations ---------------------------------------------
 
-#data = np.loadtxt("/Users/Matte/Desktop/EPFL/BA4/Physnum/Physnum_Exo4/phioutput.out")
-#data2 = np.loadtxt("/Users/Matte/Desktop/EPFL/BA4/Physnum/Physnum_Exo4/Eoutput.out") # Load the output file of the i-th simulation
-#t = data[:, 0]
-#phi = data[:,1] # nombre de pas de temps total pour la simulation
-#E = data2[:,1]
-#print(phi,E)
-
-def conv (): #phi(r=0) en fonction du nombre de points de maillage N1(=N2)
+data = np.loadtxt("/Users/Matte/Desktop/EPFL/BA4/Physnum/Physnum_Exo4/phioutput.out")
+data2 = np.loadtxt("/Users/Matte/Desktop/EPFL/BA4/Physnum/Physnum_Exo4/Eoutput.out") # Load the output file of the i-th simulation
+r = data[:, 0]
+phi = data[:,1] # nombre de pas de temps total pour la simulation
+rE= data2[:,0]
+E = data2[:,1]
+print(phi,N1)
+def conv(): #phi(r=0) en fonction du nombre de points de maillage N1(=N2)
     for N1 in N1_list:
         # Charger et modifier le fichier de configuration
         config_data = np.genfromtxt(config_path)
@@ -60,6 +60,7 @@ def conv (): #phi(r=0) en fonction du nombre de points de maillage N1(=N2)
         phi = data[:, 1]  # colonne du potentiel
         phi_center = phi[0]  # ou un autre critère : moyenne, etc.
         phi_center_list.append(phi_center)
+        print(phi)
 
     # Tracer la convergence
     plt.figure()
@@ -71,6 +72,12 @@ def conv (): #phi(r=0) en fonction du nombre de points de maillage N1(=N2)
     plt.tight_layout()
     plt.show()
 
-    
-conv()
+def pot():
+    plt.plot(r,phi)
+    #plt.plot(rE,E)
+    plt.xlabel("r,rE", fontsize=fs)
+    plt.ylabel("phi, E", fontsize=fs)
+    plt.grid()
+pot()
+conv() #marche pas 
 plt.show()
