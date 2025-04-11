@@ -52,8 +52,9 @@ double epsilon(double r, double r1, double eps_a , double eps_b ) {
 
 
 //TODO build the rho_epsilon function (rho_lib / epsilon_0)
-double rho_epsilon(double r , double rho_lib = 1 , double eps_0 = epsilon_0 )
+double rho_epsilon(double r , double rho_lib = epsilon_0 , double eps_0 = epsilon_0 )
 {
+	//cout << rho_lib / eps_0 << endl ; 
     return rho_lib / eps_0;
 }
 
@@ -64,7 +65,7 @@ main(int argc, char* argv[])
     // USAGE: Exercise4 [configuration-file] [<settings-to-overwrite> ...]
 
     // Read the default input
-    string inputPath = "/Users/Matte/Desktop/EPFL/BA4/Physnum/Physnum_Exo4/configuration.in.example";
+    string inputPath = "/Users/a-x-3/Desktop/Exercice4_2025_student/configuration.in.example";
     // Optionally override configuration file.
     if (argc > 1)
         inputPath = argv[1];
@@ -96,13 +97,15 @@ main(int argc, char* argv[])
     
     // Discretization
     const int N1 = configFile.get<int>("N1");
-    const int N2 = N1; //configFile.get<int>("N2");
+    const int N2 = N1 ; // configFile.get<int>("N2");
+    cout << N1 << endl ; 
+    cout << N2 << endl ; 
     
     // Fichiers de sortie:
     string fichier = configFile.get<string>("output");
-    string fichier_phi = "/Users/Matte/Desktop/EPFL/BA4/Physnum/Physnum_Exo4/phi"+fichier;
-    string fichier_E   = "/Users/Matte/Desktop/EPFL/BA4/Physnum/Physnum_exo4/E"+fichier;
-    string fichier_D   = "/Users/Matte/Desktop/EPFL/BA4/Physnum/Physnum_Exo4/D"+fichier;
+    string fichier_phi = "/Users/a-x-3/Desktop/Exercice4_2025_student/" + fichier + "_phi.out"; // /Users/a-x-3/Desktop/Exercice4_2025_student/
+    string fichier_E   = "/Users/a-x-3/Desktop/Exercice4_2025_student/" + fichier + "_E.out";
+    string fichier_D   = "/Users/a-x-3/Desktop/Exercice4_2025_student/" + fichier + "_D.out";
 
     // Create our finite elements
     const int pointCount = N1 + N2 + 1; // Number of finite elements
@@ -114,9 +117,11 @@ main(int argc, char* argv[])
 
     //TODO build the nodes vector r
     
-    // Arrays 
+    // Arrays initialization
     vector<double> h(pointCount-1); 	// Distance between grid points
     vector<double> midPoint(pointCount-1);  // Midpoint of each grid element
+        
+    // cout << epsilon_a << endl ; 	    
         
     // TODO build the h vector and midpoint vector
     
@@ -131,6 +136,14 @@ main(int argc, char* argv[])
 	//for ( size_t i = 0 ; i < pointCount - 1  ; ++i  )
 	//{ cout << i << ' ' << h[i] << endl ; }
 	
+	for (size_t i = 0 ; i < pointCount ; ++i) // construction du vecteur position
+	{
+		if ( i == 0 )
+		{ r[i] = 0 ; }
+		else
+		{ r[i] = r[i-1] + h[i-1] ; }
+	}	
+	
 	for ( size_t i = 0 ; i < pointCount - 1 ; ++i  ) // construction du mid point 
 	{ 
 		if ( i == 0 )
@@ -142,23 +155,25 @@ main(int argc, char* argv[])
 			else 
 			{
 				if ( i == N1 )
-				{ midPoint[i] = midPoint[i-1] + h1/2 + h2/2 ; }
+				{ midPoint[i] = ( midPoint[i-1] + h1/2 + h2 + r[i] ) / 2 ; } // on fait le milieu entre les deux points des différents maillages
 				else 
-				{ midPoint[i] = midPoint[i-1] + h2/2 ; }
+				{ 
+					if ( i == N1 + 1 )
+					{ midPoint[i] = r[i] + h2/2 ; } // on se replace au bon endroit en prenant le mileu entre les deux premiers points du nouveau maillage 
+					else
+					{ midPoint[i] = midPoint[i-1] + h2 ; }
+				}
 			}
 		}
 	 }
-	 
-	for (size_t i = 0 ; i < pointCount ; ++i) // construction du vecteur position
-	{
-		if ( i == 0 )
-		{ r[i] = 0 ; }
-		else
-		{ r[i] = r[i-1] + h[i-1] ; }
-	}
 	
-	//for ( size_t i = 0 ; i < pointCount ; ++i  )
-	//{ cout << i  << ' ' << r[i] << endl ; }
+	for ( auto const & ri : r  )
+	{ cout << ri << endl ; }
+	
+	cout << 'h' << endl ; 
+	
+	for ( auto const & hi : h )
+	{ cout << hi << endl ; }
 	
 	//for ( size_t i = 0 ; i < pointCount - 1  ; ++i  )
 	//{ cout << i << ' ' << midPoint[i] << endl ; }
@@ -184,18 +199,14 @@ main(int argc, char* argv[])
 			diagonal[k] = midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; // pas de k-1 => intégrale gauche nulle 
 			lower[k]    = 0 ; // pas de k-1 => intégrale nulle 
 			upper[k]    = - midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
-			rhs[k] 		= h[k] * midPoint[k] * rho_epsilon (midPoint[k],rho0) / 2 ; 
-<<<<<<< HEAD
-        }else 
-=======
+			rhs[k] 		= h[k] * midPoint[k] * rho_epsilon (midPoint[k],rho0) / 2 ; // pas de k-1 => intégrale gauc
 		}
 		else 
->>>>>>> 6a245abd93cd2a0226eb35243f8ecbdbb94cc402
 		{
 			diagonal[k] = midPoint[k-1] * epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) / (2 * h[k-1]) + midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
 			lower[k]    = - midPoint[k-1] * epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) / (2 * h[k-1]) ; 
 			upper[k]    = - midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
-			rhs[k] 		= h[k-1] * midPoint[k-1] * rho_epsilon (midPoint[k - 1],rho0) / 2 + h[k] * midPoint[k] * rho_epsilon (midPoint[k],rho0) / 2   ; 
+			rhs[k] 		= h[k-1] * midPoint[k-1] * rho_epsilon (midPoint[k-1],rho0) / 2 + h[k] * midPoint[k] * rho_epsilon (midPoint[k],rho0) / 2   ; 
 		}
 
     }
@@ -217,6 +228,7 @@ main(int argc, char* argv[])
     for (int i = 0; i < E.size(); ++i) {
         // TODO calculate E and D
         E[i] = - (phi[i] - phi[i+1]) / h[i] ; 
+        // cout << E[i] << endl ; 
         D[i] = epsilon_0 * epsilon(midPoint[i], r1 , epsilon_a , epsilon_b ) * E[i] ; 
     }
 
