@@ -52,10 +52,18 @@ double epsilon(double r, double r1, double eps_a , double eps_b ) {
 
 
 //TODO build the rho_epsilon function (rho_lib / epsilon_0)
-double rho_epsilon(double r , double rho_lib = epsilon_0 , double eps_0 = epsilon_0 )
+double rho_epsilon(double r , double r1 , bool unif_rho , double rho_lib = epsilon_0  ,  double eps_0 = epsilon_0 )
 {
-	//cout << rho_lib / eps_0 << endl ; 
-    return rho_lib / eps_0;
+	if ( unif_rho ) 
+	{ return rho_lib / eps_0 ; }
+	else // cas rho non-uniforme ; attention rho-lib = 10e4 dans ce cas ( changer dans le configfile ) 
+	{ 
+		if ( r < r1 )
+		{ return rho_lib * sin(PI*r/r1) ; }
+		else 
+		{ return 0.0 ; }
+		
+	}
 }
 
 int
@@ -81,7 +89,7 @@ main(int argc, char* argv[])
 
     // Read geometrical inputs
     const double R  = configFile.get<double>("R");
-    const double r1 = configFile.get<double>("r1");
+    const double r1 = configFile.get<double>("r1"); // r1 = R/2 ; //
 
     const double rho0 = configFile.get<double>("rho0");
 
@@ -103,9 +111,9 @@ main(int argc, char* argv[])
     
     // Fichiers de sortie:
     string fichier = configFile.get<string>("output");
-    string fichier_phi = "/Users/a-x-3/Desktop/Exercice4_2025_student/" + fichier + "_phi.out"; // /Users/a-x-3/Desktop/Exercice4_2025_student/
-    string fichier_E   = "/Users/a-x-3/Desktop/Exercice4_2025_student/" + fichier + "_E.out";
-    string fichier_D   = "/Users/a-x-3/Desktop/Exercice4_2025_student/" + fichier + "_D.out";
+    string fichier_phi = fichier + "_phi.out";  //"/Users/a-x-3/Desktop/Exercice4_2025_student/" + fichier + "_phi.out"; // /Users/a-x-3/Desktop/Exercice4_2025_student/
+    string fichier_E   = fichier + "_E.out";   //"/Users/a-x-3/Desktop/Exercice4_2025_student/" + fichier + "_E.out";
+    string fichier_D   = fichier + "_D.out";  //"/Users/a-x-3/Desktop/Exercice4_2025_student/" + fichier + "_D.out";
 
     // Create our finite elements
     const int pointCount = N1 + N2 + 1; // Number of finite elements
@@ -124,17 +132,12 @@ main(int argc, char* argv[])
     // cout << epsilon_a << endl ; 	    
         
     // TODO build the h vector and midpoint vector
-    
-    // cout << h.size() << endl ; 
-        
+            
 	for ( size_t i = 0 ; i < N1 ; ++i  ) // construction de h (première moitié)
 	{ h[i] = h1 ; }
 		
 	for ( size_t i = N1 ; i < pointCount - 1 ; ++i  ) // construction de h (deuxième moitié)
 	{ h[i] = h2 ; }
-	
-	//for ( size_t i = 0 ; i < pointCount - 1  ; ++i  )
-	//{ cout << i << ' ' << h[i] << endl ; }
 	
 	for (size_t i = 0 ; i < pointCount ; ++i) // construction du vecteur position
 	{
@@ -167,13 +170,13 @@ main(int argc, char* argv[])
 		}
 	 }
 	
-	for ( auto const & ri : r  )
-	{ cout << ri << endl ; }
+	//for ( auto const & ri : r  )
+	//{ cout << ri << endl ; }
 	
-	cout << 'h' << endl ; 
+	//cout << 'h' << endl ; 
 	
-	for ( auto const & hi : h )
-	{ cout << hi << endl ; }
+	//for ( auto const & hi : h )
+	//{ cout << hi << endl ; }
 	
 	//for ( size_t i = 0 ; i < pointCount - 1  ; ++i  )
 	//{ cout << i << ' ' << midPoint[i] << endl ; }
@@ -199,20 +202,18 @@ main(int argc, char* argv[])
 			diagonal[k] = midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; // pas de k-1 => intégrale gauche nulle 
 			lower[k]    = 0 ; // pas de k-1 => intégrale nulle 
 			upper[k]    = - midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
-			rhs[k] 		= h[k] * midPoint[k] * rho_epsilon (midPoint[k],rho0) / 2 ; // pas de k-1 => intégrale gauc
+			rhs[k] 		= h[k] * midPoint[k] * rho_epsilon (midPoint[k],r1,uniform_rho_case,rho0) / 2 ; // pas de k-1 => intégrale gauc
 		}
 		else 
 		{
 			diagonal[k] = midPoint[k-1] * epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) / (2 * h[k-1]) + midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
 			lower[k]    = - midPoint[k-1] * epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) / (2 * h[k-1]) ; 
 			upper[k]    = - midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
-			rhs[k] 		= h[k-1] * midPoint[k-1] * rho_epsilon (midPoint[k-1],rho0) / 2 + h[k] * midPoint[k] * rho_epsilon (midPoint[k],rho0) / 2   ; 
+			rhs[k] 		= h[k-1] * midPoint[k-1] * rho_epsilon (midPoint[k-1],r1,uniform_rho_case,rho0) / 2 + h[k] * midPoint[k] * rho_epsilon (midPoint[k],r1,uniform_rho_case,rho0) / 2   ; 
 		}
 
     }
         
-    
-
     // TODO boundary condition at r=R (modify the lines below)
     lower[lower.size() - 1]       = 0.0;
     diagonal[diagonal.size() - 1] = 1.0;
@@ -227,7 +228,7 @@ main(int argc, char* argv[])
     vector<double> D(pointCount - 1, 0);
     for (int i = 0; i < E.size(); ++i) {
         // TODO calculate E and D
-        E[i] = - (phi[i] - phi[i+1]) / h[i] ; 
+        E[i] = - (phi[i-1] - phi[i]) / h[i] ; 
         // cout << E[i] << endl ; 
         D[i] = epsilon_0 * epsilon(midPoint[i], r1 , epsilon_a , epsilon_b ) * E[i] ; 
     }
