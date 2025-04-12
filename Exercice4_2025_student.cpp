@@ -104,8 +104,9 @@ main(int argc, char* argv[])
     const double VR = configFile.get<double>("VR");
     
     // Discretization
+    const int alpha = configFile.get<int>("alpha") ; // coeff de proportionnalité 
     const int N1 = configFile.get<int>("N1");
-    const int N2 = N1 ; // configFile.get<int>("N2");
+    const int N2 = alpha * N1 ; // configFile.get<int>("N2");
     cout << N1 << endl ; 
     cout << N2 << endl ; 
     
