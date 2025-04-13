@@ -89,7 +89,7 @@ main(int argc, char* argv[])
 
     // Read geometrical inputs
     const double R  = configFile.get<double>("R");
-    const double r1 = R/2 ; // configFile.get<double>("r1"); 
+    const double r1 = configFile.get<double>("r1"); 
 
     const double rho0 = configFile.get<double>("rho0");
 
