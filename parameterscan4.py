@@ -36,9 +36,11 @@ print("alpha : " , alpha)
 
 
 N1 = np.array([2,5,10,20,50,100])
-N2 = N1*int(alpha)
- 
+#N2 = N1*int(alpha)
+N2 = np.array([1,2,10,20,50,100]) 
 nsimul = N1.size
+
+
 
 energy = np.zeros(nsimul) # added 
 paramstr = 'N1'  # Parameter name to scan
@@ -53,7 +55,7 @@ for i in range(nsimul):
     output_file = f"{paramstr}={param[i]}"
     outputs.append(output_file)
     #cmd = f"{repertoire}{executable} {input_filename} {paramstr}={param[i]:.15g} output={output_file}"
-    cmd = f"{executable} {input_filename} {paramstr}={param[i]:.15g} output={output_file}"
+    cmd = f"{executable} {input_filename} {paramstr}={param[i]:.15g} {paramstr2}={param2[i]:.15g} output={output_file}"
     #cmd = f"{executable}"
     print(cmd)
     print(output_file)
