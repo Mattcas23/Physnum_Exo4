@@ -15,21 +15,29 @@ input_filename = 'configuration.in.example'  # Name of the input file
 
 ############################ Valeurs du configfile ############################
 
-Values = np.genfromtxt("configuration.in.example" , comments = '%')
+Values = np.genfromtxt("configuration.in.example" , comments = '//')
 
-r1 = Values[1,-1] # 0.015
+R  = Values[0,-1]
+print(R)
+r1 = Values[1,-1] 
 print(r1)
-### Signes b pour le cas du a) ( enlevé pour le b ) mais gardent la définition avec le b)
-##
+uniform_rho_case = Values[5,-1]
+print(uniform_rho_case)
+rho0 = Values[7,-1] # valeur pour la question a) 
+print(rho0)
 alpha = Values[13,-1] # coeff de proportionnalité
 print(alpha)
+
 
 ########################### Simulations ##############################
 
 
-N1 = np.array([90,110,120,140,150,170,200])
-N2 = N1 * alpha 
+#N1 = np.array([90,110,120,140,150,170,200])
+#N2 = N1 * alpha
 
+N1 = np.array([1500])
+N2 = N1*int(alpha)
+ 
 nsimul = N1.size
 
 energy = np.zeros(nsimul) # added 
@@ -86,30 +94,61 @@ def Conv_phir1 ( norder = 2 ) : # ( question b) ordre 2 )
     plt.ylabel('$\\phi(r_1)$', fontsize = fs)  
     
 
-def Eplot () : # Plot le champ électrique en fonction de r 
+def Eplot () : # Plot le champ électrique en fonction de r
+
+    E0_eq = ''
 
     plt.figure()
-    plt.title(f'N1 = {N1[-1]} et N2 = {N2[-1]}')
+    plt.title(f'N1 = {N1[-1]} et N2 = {N2[-1]}', fontsize = fs - 2)
     plt.plot(E[:,0],E[:,1], color = "black" )
-    plt.vlines(r1, ymin = min(E[:,1]) , ymax = max(E[:,1]) , color = 'red' , linestyle = 'dashed' , label = f"$ r_1 = {r1} $")
+
+    if uniform_rho_case : # question a) (rho unif) : on affiche la solution analytique 
+
+        print("A faire")#plt.plot(E[:,0], -(Phi[:,0]**2 - R**2)/(2), color = 'orange', linestyle = 'dashed', label = E0_eq)
+
+    else : # sinon on affiche la zone de changement de permitivité 
+
+        plt.vlines(r1, ymin = min(E[:,1]) , ymax = max(E[:,1]) , color = 'red' , linestyle = 'dashed' , label = f"$ r_1 = {r1} $")
+        
     plt.xlabel('r [m]', fontsize = fs)
     plt.ylabel('E [V/m]', fontsize = fs)
     plt.legend()
 
-def Dplot () : # Plot le champ de déplacement en fonction de r 
+def Dplot () : # Plot le champ de déplacement en fonction de r
+
+    D0_eq = ''
 
     plt.figure()
+    plt.title(f'N1 = {N1[-1]} et N2 = {N2[-1]}', fontsize = fs - 2)
     plt.plot(D[:,0],D[:,1], color = "black")
-    plt.vlines(r1, ymin = min(D[:,1]) , ymax = max(D[:,1]) , color = 'red' , linestyle = 'dashed' , label = f"$ r_1 = {r1} $")
+
+    if uniform_rho_case : # question a) (rho unif) : on affiche la solution analytique 
+
+        print("A faire") #plt.plot(D[:,0], -(Phi[:,0]**2 - R**2)/(2), color = 'orange', linestyle = 'dashed', label = D0_eq)
+
+    else : # sinon on affiche la zone de changement de permitivité 
+        plt.vlines(r1, ymin = min(D[:,1]) , ymax = max(D[:,1]) , color = 'red' , linestyle = 'dashed' , label = f"$ r_1 = {r1} $")
+
     plt.xlabel('r [m]', fontsize = fs)
     plt.ylabel('D []', fontsize = fs)
     plt.legend()
     
-def Phiplot () : # Plot le potentiel en fonction de r 
+def Phiplot () : # Plot le potentiel en fonction de r
 
+    phi0_eq = '$\\phi(r) = -\\frac{\\rho_0}{2 \\epsilon_0} (r^2-R^2)$'
+    
     plt.figure()
+    plt.title(f'N1 = {N1[-1]} et N2 = {N2[-1]}', fontsize = fs - 2)
     plt.plot(Phi[:,0],Phi[:,1], color = "black")
-    plt.vlines(r1, ymin = min(Phi[:,1]) , ymax = max(Phi[:,1]) , color = 'red' , linestyle = 'dashed' , label = f"$ r_1 = {r1} $")
+
+    if uniform_rho_case : # question a) (rho unif) : on affiche la solution analytique 
+
+        plt.plot(Phi[:,0], -(Phi[:,0]**2 - R**2)/(2), color = 'orange', linestyle = 'dashed', label = phi0_eq)
+
+    else : # sinon on affiche la zone de changement de permitivité 
+
+        plt.vlines(r1, ymin = min(Phi[:,1]) , ymax = max(Phi[:,1]) , color = 'red' , linestyle = 'dashed' , label = f"$ r_1 = {r1} $")
+
     plt.xlabel('r [m]', fontsize = fs)
     plt.ylabel('$\\phi(r)$ [V]', fontsize = fs)
     plt.legend()
@@ -117,12 +156,13 @@ def Phiplot () : # Plot le potentiel en fonction de r
 def Distance () : # Contrôle pour les midPoints
 
     plt.figure()
+    plt.title(f'N1 = {N1[-1]} et N2 = {N2[-1]}', fontsize = fs - 2)
     plt.scatter(Phi[:,0],np.ones(Phi[:,0].size),label = "$r_i$")
     plt.scatter(D[:,0],np.ones(D[:,0].size),label = "$r_{i+1/2}$" , marker='+')
     plt.legend()
 
-Conv_phi0()
-Conv_phir1()
+#Conv_phi0()
+#Conv_phir1()
 Phiplot()
 Dplot()
 Eplot()
