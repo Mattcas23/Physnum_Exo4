@@ -15,7 +15,7 @@ input_filename = 'configuration.in.example'  # Name of the input file
 
 ############################ Valeurs du configfile ############################
 
-Values = np.genfromtxt("configuration.in.example" , comments = '//')
+Values = np.genfromtxt("configuration.in.example" , comments = '//') #genfromtxt
 
 R  = Values[0,-1]
 print("R : " , R)
@@ -26,21 +26,27 @@ print("unirhocase : " , uniform_rho_case)
 rho0 = Values[7,-1] # valeur pour la question a) 
 print("rho0: " , rho0)
 
-
-
 ########################### Simulations ##############################
 
 
 #N1 = np.array([90,110,120,140,150,170,200]) # liste utilisée pour la convergence a)
 
 
-N1 = np.array([2,5,10,20,50,100])
+#N1 = np.array([2,5,10,15,20])
 #N2 = N1*int(alpha)
-N2 = np.array([1,2,10,20,50,100]) 
+#N2 = np.array([3,2,20,30,50])
+
+N1 = np.ones(10)*200
+N2 = np.arange(1,6,0.5)*200
+print(N2)
 
 if N1.size != N2.size :
     
-    raise ValueError("La taille de N1 doit être la même que celle de N2") 
+    raise ValueError("La taille de N1 doit être la même que celle de N2")
+
+if uniform_rho_case and N1 != N2 :
+
+    raise ValueError("Pour le a) on doit avoir N1 = N2")
 
 nsimul = N1.size
 
@@ -73,7 +79,8 @@ for i in range(nsimul):  # Iterate through the results of all simulations
 
     data = np.loadtxt(outputs[i]+"_phi.out")  # Load the output file of the i-th simulation
     phi0.append(data[0,1])
-    phir1.append(data[N1[i],1])
+    r1i = int(N1[i])
+    phir1.append(data[r1i,1])
 
 lw = 1.5
 fs = 16
@@ -90,9 +97,10 @@ def Conv_phi0 ( norder = 2 ) : # étude de convergence ( question a) ordre 2 )
     plt.ylabel('$\\phi_0$', fontsize = fs)
     #plt.legend()
 
-def Conv_phir1 ( norder = 2 ) : # ( question b) ordre 2 )
+def Conv_phir1 ( norder = 3 ) : # ( question b) ordre 2 )
 
     plt.figure()
+    plt.title(f"N1 = {int(N1[-1])}")
     plt.plot(1/pow(N1+N2,norder), phir1 , 'k+-')
     plt.xlabel('(1/N)' + f"$^{norder}$", fontsize = fs)
     plt.ylabel('$\\phi(r_1)$', fontsize = fs)  
@@ -201,10 +209,10 @@ def Distance () : # Contrôle pour les midPoints
     plt.legend(fontsize = fs - 2.5)
 
 #Conv_phi0()
-#Conv_phir1()
-Phiplot(True)
-Dplot(True)
-Eplot(True)
+Conv_phir1()
+#Phiplot(True)
+#Dplot(True)
+#Eplot(True)
 #Distance()
 
 
