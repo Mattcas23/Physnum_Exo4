@@ -25,8 +25,7 @@ uniform_rho_case = Values[5,-1]
 print("unirhocase : " , uniform_rho_case)
 rho0 = Values[7,-1] # valeur pour la question a) 
 print("rho0: " , rho0)
-alpha = Values[13,-1] # coeff de proportionnalité
-print("alpha : " , alpha)
+
 
 
 ########################### Simulations ##############################
@@ -38,9 +37,12 @@ print("alpha : " , alpha)
 N1 = np.array([2,5,10,20,50,100])
 #N2 = N1*int(alpha)
 N2 = np.array([1,2,10,20,50,100]) 
+
+if N1.size != N2.size :
+    
+    raise ValueError("La taille de N1 doit être la même que celle de N2") 
+
 nsimul = N1.size
-
-
 
 energy = np.zeros(nsimul) # added 
 paramstr = 'N1'  # Parameter name to scan
@@ -48,11 +50,11 @@ param = N1  # Parameter values to scan
 paramstr2 = 'N2'
 param2 = N2
 
-# Simulations
+# Simulations avec N1 et N2
 outputs = []  # List to store output file names
 convergence_list = []
 for i in range(nsimul):
-    output_file = f"{paramstr}={param[i]}"
+    output_file = f"{paramstr}={param[i]}_{paramstr2}={param2[i]}"
     outputs.append(output_file)
     #cmd = f"{repertoire}{executable} {input_filename} {paramstr}={param[i]:.15g} output={output_file}"
     cmd = f"{executable} {input_filename} {paramstr}={param[i]:.15g} {paramstr2}={param2[i]:.15g} output={output_file}"
