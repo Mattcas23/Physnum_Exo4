@@ -89,7 +89,7 @@ main(int argc, char* argv[])
 
     // Read geometrical inputs
     const double R  = configFile.get<double>("R");
-    const double r1 = configFile.get<double>("r1"); // r1 = R/2 ; //
+    const double r1 = R/2 ; // configFile.get<double>("r1"); 
 
     const double rho0 = configFile.get<double>("rho0");
 
@@ -201,14 +201,16 @@ main(int argc, char* argv[])
         if ( k == 0 )
         {
 			diagonal[k] = midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; // pas de k-1 => intégrale gauche nulle 
-			lower[k]    = 0 ; // pas de k-1 => intégrale nulle 
+			//lower[k]    = 0 ; // pas de k-1 => intégrale nulle 
 			upper[k]    = - midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
 			rhs[k] 		= h[k] * midPoint[k] * rho_epsilon (midPoint[k],r1,uniform_rho_case,rho0) / 2 ; // pas de k-1 => intégrale gauc
 		}
 		else 
 		{
+			//cout << "k-1 : " << epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) << endl ; 
+			//cout << "k : " << epsilon(midPoint[k],r1,epsilon_a,epsilon_b) << endl ; 
 			diagonal[k] = midPoint[k-1] * epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) / (2 * h[k-1]) + midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
-			lower[k]    = - midPoint[k-1] * epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) / (2 * h[k-1]) ; 
+			lower[k-1]    = - midPoint[k-1] * epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) / (2 * h[k-1]) ; 
 			upper[k]    = - midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
 			rhs[k] 		= h[k-1] * midPoint[k-1] * rho_epsilon (midPoint[k-1],r1,uniform_rho_case,rho0) / 2 + h[k] * midPoint[k] * rho_epsilon (midPoint[k],r1,uniform_rho_case,rho0) / 2   ; 
 		}
@@ -220,7 +222,18 @@ main(int argc, char* argv[])
     diagonal[diagonal.size() - 1] = 1.0;
     rhs[rhs.size() - 1] = VR;
 
+	cout << "diagonal" << endl ; 
+	for ( auto const & dia : diagonal )
+	{ cout << dia << endl ; } 
+	
+	cout << "lower" << endl ; 
+	for ( auto const & low : lower )
+	{ cout << low << endl ; } 
 
+	cout << "upper" << endl ; 
+	for ( auto const & up : upper )
+	{ cout << up << endl ; } 
+	
     // Solve the system of equations
     vector<double> phi = solve(diagonal, lower, upper, rhs);
 
@@ -229,7 +242,7 @@ main(int argc, char* argv[])
     vector<double> D(pointCount - 1, 0);
     for (int i = 0; i < E.size(); ++i) {
         // TODO calculate E and D
-        E[i] = - (phi[i-1] - phi[i]) / h[i] ; 
+        E[i] = - (phi[i] - phi[i+1]) / h[i] ; 
         // cout << E[i] << endl ; 
         D[i] = epsilon_0 * epsilon(midPoint[i], r1 , epsilon_a , epsilon_b ) * E[i] ; 
     }
