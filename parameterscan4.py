@@ -96,7 +96,7 @@ def Conv_phir1 ( norder = 2 ) : # ( question b) ordre 2 )
 
 def Eplot () : # Plot le champ électrique en fonction de r
 
-    E0_eq = ''
+    E0_eq = '$ E(r) = \\rho_0 \\frac{r}{ \\epsilon_0} $'
 
     plt.figure()
     plt.title(f'N1 = {N1[-1]} et N2 = {N2[-1]}', fontsize = fs - 2)
@@ -104,7 +104,7 @@ def Eplot () : # Plot le champ électrique en fonction de r
 
     if uniform_rho_case : # question a) (rho unif) : on affiche la solution analytique 
 
-        print("A faire")#plt.plot(E[:,0], -(Phi[:,0]**2 - R**2)/(2), color = 'orange', linestyle = 'dashed', label = E0_eq)
+        plt.plot(E[:,0], - E[:,0] , color = 'orange', linestyle = (0, (5, 7)) , label = E0_eq) # rho0 = eps0 
 
     else : # sinon on affiche la zone de changement de permitivité 
 
@@ -116,7 +116,7 @@ def Eplot () : # Plot le champ électrique en fonction de r
 
 def Dplot () : # Plot le champ de déplacement en fonction de r
 
-    D0_eq = ''
+    D0_eq = '$ D(r) = r \\rho_0  $'
 
     plt.figure()
     plt.title(f'N1 = {N1[-1]} et N2 = {N2[-1]}', fontsize = fs - 2)
@@ -124,7 +124,7 @@ def Dplot () : # Plot le champ de déplacement en fonction de r
 
     if uniform_rho_case : # question a) (rho unif) : on affiche la solution analytique 
 
-        print("A faire") #plt.plot(D[:,0], -(Phi[:,0]**2 - R**2)/(2), color = 'orange', linestyle = 'dashed', label = D0_eq)
+        plt.plot(D[:,0], - rho0 * D[:,0] , color = 'orange', linestyle = (0, (5, 7)), label = D0_eq)
 
     else : # sinon on affiche la zone de changement de permitivité 
         plt.vlines(r1, ymin = min(D[:,1]) , ymax = max(D[:,1]) , color = 'red' , linestyle = 'dashed' , label = f"$ r_1 = {r1} $")
@@ -143,7 +143,7 @@ def Phiplot () : # Plot le potentiel en fonction de r
 
     if uniform_rho_case : # question a) (rho unif) : on affiche la solution analytique 
 
-        plt.plot(Phi[:,0], -(Phi[:,0]**2 - R**2)/(2), color = 'orange', linestyle = 'dashed', label = phi0_eq)
+        plt.plot(Phi[:,0], -(Phi[:,0]**2 - R**2)/(2), color = 'orange', linestyle = (0, (5, 7)), label = phi0_eq)
 
     else : # sinon on affiche la zone de changement de permitivité 
 
