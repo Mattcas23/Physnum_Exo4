@@ -36,9 +36,12 @@ print("rho0: " , rho0)
 #N2 = N1*int(alpha)
 #N2 = np.array([3,2,20,30,50])
 
-N1 = np.ones(10)*200
-N2 = np.arange(1,6,0.5)*200
-print(N2)
+#N1 = np.ones(10)*200
+#N2 = np.arange(1,6,0.5)*200
+#print(N2)
+
+N1 = np.array([200])
+N2 = N1 
 
 if N1.size != N2.size :
     
@@ -198,7 +201,21 @@ def Phiplot (multiple) : # Plot le potentiel en fonction de r
             
         plt.xlabel('r [m]', fontsize = fs)
         plt.ylabel('$\\phi(r)$ [V]', fontsize = fs)
-        plt.legend() 
+        plt.legend()
+
+def Ddr () : # différences finies pour dr
+
+    D_ps = ( D[1:,0] + D[:-1,0] ) / 2 # positions des points milieux
+    D_dr = ( D[1:,1] - D[:-1,1] ) / 2 # théorème de la divergence avec différences finies 
+    
+    plt.figure()
+    plt.plot(D_ps,D_dr, color = 'black')
+    #plt.plot(D_ps, )
+    plt.vlines(r1, ymin = min(D_dr) , ymax = max(D_dr) , color = 'red' , linestyle = 'dashed' , label = f"$ r_1 = {r1} $")        
+    plt.xlabel('r [m]', fontsize = fs)
+    plt.ylabel('$\\rho_{lib}$ [C$\,$m$^{-3}$]', fontsize = fs)
+    plt.legend()  
+    
 
 def Distance () : # Contrôle pour les midPoints
 
@@ -209,10 +226,11 @@ def Distance () : # Contrôle pour les midPoints
     plt.legend(fontsize = fs - 2.5)
 
 #Conv_phi0()
-Conv_phir1()
+#Conv_phir1()
 #Phiplot(True)
-#Dplot(True)
-#Eplot(True)
+Dplot(False)
+Eplot(True)
+Ddr()     
 #Distance()
 
 
