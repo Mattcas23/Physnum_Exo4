@@ -22,11 +22,11 @@ print("R : " , R)
 r1 = Values[1,-1] 
 print("r1 : " ,r1)
 epsilon_b = Values[3,-1] 
-print(epsilon_b)
+print("epsilon_b : " , epsilon_b)
 uniform_rho_case = Values[4,-1]
 print("unirhocase : " , uniform_rho_case)
 rho0 = Values[6,-1] # valeur pour la question a) 
-print("rho0: " , rho0)
+print("rho0 : " , rho0)
 
 epsilon0 = 8.85418782e-12
 
@@ -66,10 +66,6 @@ if uniform_rho_case and int(epsilon_b) != int(1) :
 if not uniform_rho_case and int(epsilon_b) != int(4) :
 
     raise ValueError(f"Pour le b) on doit avoir epsilon_b = 4")
-
-
-
-#if not uniform_rho_case and epsilon_a :
     
 
 nsimul = N1.size
@@ -224,24 +220,21 @@ def Phiplot (multiple) : # Plot le potentiel en fonction de r
         plt.ylabel('$\\phi(r)$ [V]', fontsize = fs)
         plt.legend()
 
-def Ddr () : # différences finies pour dr
+def Div_D () : # différences finies pour dr (Attention D est fois epsilon 0 : s'en débarasser)
 
-    D_ps = ( D[1:,0] + D[:-1,0] ) / 2 # positions des points milieux
-    
+    Dmid = ( D[1:,0] + D[:-1,0] ) / 2
 
-    #print(D[:,1])
-    #print(D[1:,1])
-    #print(D[:-1,1])
-    
-    D_dr = ( D[1:,1] - D[:-1,1] ) / (D[1:,0] - D[:-1,0]) # théorème de la divergence avec différences finies
-    
+    Ddr =  ( D[1:,1]*D[1:,0] - D[:-1,1]*D[:-1,0] ) / ( (D[1:,0] - D[:-1,0]) * Dmid * epsilon0 ) 
 
+        
+    
     plt.figure()
-    plt.plot(D_ps,D_dr, color = 'black')
-    #plt.plot(D_ps, np.cumsum(1e4*np.sin(np.pi * r1 / D_ps)*epsilon0) )
-    plt.plot(Phi[:,0],np.cumsum(Phi[:,2]*epsilon0))
-    #plt.plot(Phi[:,0],(Phi[:,2]*epsilon0)) 
-    plt.vlines(r1, ymin = min(D_dr) , ymax = max(D_dr) , color = 'red' , linestyle = 'dashed' , label = f"$ r_1 = {r1} $")        
+    plt.plot(Dmid,Ddr, color = 'black')
+    
+    #plt.plot(Phi[:,0],np.cumsum(Phi[:,2]*epsilon0))
+    plt.plot(Phi[:,0],(Phi[:,2])) 
+
+    plt.vlines(r1, ymin = min(Ddr) , ymax = max(Ddr) , color = 'red' , linestyle = 'dashed' , label = f"$ r_1 = {r1} $")        
     plt.xlabel('r [m]', fontsize = fs)
     plt.ylabel('$\\rho_{lib}$ [C/m$^{3}$]', fontsize = fs)
     plt.legend()  
@@ -257,10 +250,10 @@ def Distance () : # Contrôle pour les midPoints
 
 #Conv_phi0()
 #Conv_phir1()
-Phiplot(False)
+#Phiplot(False)
 Dplot(False)
 Eplot(False)
-Ddr()     
+Div_D()     
 #Distance()
 
 
