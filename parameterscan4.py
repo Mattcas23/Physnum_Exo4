@@ -21,10 +21,14 @@ R  = Values[0,-1]
 print("R : " , R)
 r1 = Values[1,-1] 
 print("r1 : " ,r1)
-uniform_rho_case = Values[5,-1]
+epsilon_b = Values[3,-1] 
+print(epsilon_b)
+uniform_rho_case = Values[4,-1]
 print("unirhocase : " , uniform_rho_case)
-rho0 = Values[7,-1] # valeur pour la question a) 
+rho0 = Values[6,-1] # valeur pour la question a) 
 print("rho0: " , rho0)
+
+epsilon0 = 8.85418782e-12
 
 ########################### Simulations ##############################
 
@@ -50,6 +54,23 @@ if N1.size != N2.size :
 if uniform_rho_case and N1 != N2 :
 
     raise ValueError("Pour le a) on doit avoir N1 = N2")
+
+if uniform_rho_case and rho0!=epsilon0 :
+
+    raise ValueError(f"Pour le a) on doit avoir rho0 = {epsilon0}")
+
+if uniform_rho_case and int(epsilon_b) != int(1) :
+
+    raise ValueError(f"Pour le a) on doit avoir epsilon_b = 1")
+
+if not uniform_rho_case and int(epsilon_b) != int(4) :
+
+    raise ValueError(f"Pour le b) on doit avoir epsilon_b = 4")
+
+
+
+#if not uniform_rho_case and epsilon_a :
+    
 
 nsimul = N1.size
 
@@ -119,7 +140,7 @@ def Eplot (multiple) : # Plot le champ électrique en fonction de r
 
     if uniform_rho_case : # question a) (rho unif) : on affiche la solution analytique 
 
-        plt.plot(E[:,0], - E[:,0] , color = 'orange', linestyle = (0, (5, 7)) , label = E0_eq) # rho0 = eps0 
+        plt.plot(E[:,0], E[:,0] , color = 'orange', linestyle = (0, (5, 7)) , label = E0_eq) # rho0 = eps0 
 
     else : # sinon on affiche la zone de changement de permitivité 
 
@@ -150,7 +171,7 @@ def Dplot (multiple) : # Plot le champ de déplacement en fonction de r (multipl
 
     if uniform_rho_case : # question a) (rho unif) : on affiche la solution analytique 
 
-        plt.plot(D[:,0], - rho0 * D[:,0] , color = 'orange', linestyle = (0, (5, 7)), label = D0_eq)
+        plt.plot(D[:,0], epsilon0 * D[:,0] , color = 'orange', linestyle = (0, (5, 7)), label = D0_eq)
 
     else : # sinon on affiche la zone de changement de permitivité 
         plt.vlines(r1, ymin = min(D[:,1]) , ymax = max(D[:,1]) , color = 'red' , linestyle = 'dashed' , label = f"$ r_1 = {r1} $")
@@ -167,7 +188,7 @@ def Dplot (multiple) : # Plot le champ de déplacement en fonction de r (multipl
             plt.plot(Di[:,0],Di[:,1], label = f"N1 = {N1[i]} / N2 = {N2[i]}")
             
         plt.xlabel('r [m]', fontsize = fs)
-        plt.ylabel('D [C$\,$m$^{-2}$]', fontsize = fs)
+        plt.ylabel('D [C/m$^{2}$]', fontsize = fs)
         plt.legend()    
 
         
@@ -206,14 +227,23 @@ def Phiplot (multiple) : # Plot le potentiel en fonction de r
 def Ddr () : # différences finies pour dr
 
     D_ps = ( D[1:,0] + D[:-1,0] ) / 2 # positions des points milieux
-    D_dr = ( D[1:,1] - D[:-1,1] ) / 2 # théorème de la divergence avec différences finies 
     
+
+    #print(D[:,1])
+    #print(D[1:,1])
+    #print(D[:-1,1])
+    
+    D_dr = ( D[1:,1] - D[:-1,1] ) / (D[1:,0] - D[:-1,0]) # théorème de la divergence avec différences finies
+    
+
     plt.figure()
     plt.plot(D_ps,D_dr, color = 'black')
-    #plt.plot(D_ps, )
+    #plt.plot(D_ps, np.cumsum(1e4*np.sin(np.pi * r1 / D_ps)*epsilon0) )
+    plt.plot(Phi[:,0],np.cumsum(Phi[:,2]*epsilon0))
+    #plt.plot(Phi[:,0],(Phi[:,2]*epsilon0)) 
     plt.vlines(r1, ymin = min(D_dr) , ymax = max(D_dr) , color = 'red' , linestyle = 'dashed' , label = f"$ r_1 = {r1} $")        
     plt.xlabel('r [m]', fontsize = fs)
-    plt.ylabel('$\\rho_{lib}$ [C$\,$m$^{-3}$]', fontsize = fs)
+    plt.ylabel('$\\rho_{lib}$ [C/m$^{3}$]', fontsize = fs)
     plt.legend()  
     
 
@@ -227,9 +257,9 @@ def Distance () : # Contrôle pour les midPoints
 
 #Conv_phi0()
 #Conv_phir1()
-#Phiplot(True)
+Phiplot(False)
 Dplot(False)
-Eplot(True)
+Eplot(False)
 Ddr()     
 #Distance()
 
