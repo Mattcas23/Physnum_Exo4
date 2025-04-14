@@ -44,7 +44,7 @@ solve(const vector<T>& diag,
 //TODO build the epsilon function
 double epsilon(double r, double r1, double eps_a , double eps_b ) {
    
-    if ( r > r1 )
+    if ( r < r1 )
     { return eps_a ; }
 	else 
 	{ return eps_b ; }
@@ -52,7 +52,7 @@ double epsilon(double r, double r1, double eps_a , double eps_b ) {
 
 
 //TODO build the rho_epsilon function (rho_lib / epsilon_0)
-double rho_epsilon(double r , double r1 , bool unif_rho , double rho_lib = epsilon_0  ,  double eps_0 = epsilon_0 )
+double rho_epsilon(double r , double r1 , bool unif_rho , double rho_lib ,  double eps_0 = epsilon_0 )
 {
 	if ( unif_rho ) 
 	{ return rho_lib / eps_0 ; }
@@ -222,17 +222,17 @@ main(int argc, char* argv[])
     diagonal[diagonal.size() - 1] = 1.0;
     rhs[rhs.size() - 1] = VR;
 
-	cout << "diagonal" << endl ; 
-	for ( auto const & dia : diagonal )
-	{ cout << dia << endl ; } 
+	//cout << "diagonal" << endl ; 
+	//for ( auto const & dia : diagonal )
+	//{ cout << dia << endl ; } 
 	
-	cout << "lower" << endl ; 
-	for ( auto const & low : lower )
-	{ cout << low << endl ; } 
+	//cout << "lower" << endl ; 
+	//for ( auto const & low : lower )
+	//{ cout << low << endl ; } 
 
-	cout << "upper" << endl ; 
-	for ( auto const & up : upper )
-	{ cout << up << endl ; } 
+	//cout << "upper" << endl ; 
+	//for ( auto const & up : upper )
+	//{ cout << up << endl ; } 
 	
     // Solve the system of equations
     vector<double> phi = solve(diagonal, lower, upper, rhs);
@@ -242,9 +242,10 @@ main(int argc, char* argv[])
     vector<double> D(pointCount - 1, 0);
     for (int i = 0; i < E.size(); ++i) {
         // TODO calculate E and D
-        E[i] = - (phi[i] - phi[i+1]) / h[i] ; 
+        E[i] = (phi[i] - phi[i+1]) / h[i] ; 
         // cout << E[i] << endl ; 
         D[i] = epsilon_0 * epsilon(midPoint[i], r1 , epsilon_a , epsilon_b ) * E[i] ; 
+        //cout << midPoint[i] << " : " << epsilon(midPoint[i], r1 , epsilon_a , epsilon_b ) << endl ; 
     }
 
     // Export data
@@ -258,7 +259,8 @@ main(int argc, char* argv[])
                                      "phi does not have size");
 
         for (int i = 0; i < phi.size(); ++i) {
-            ofs << r[i] << " " << phi[i] << endl;
+            ofs << r[i] << " " << phi[i] << " " << rhs[i] << endl;
+            cout << rhs[i] << endl ; 
         }
     }
 
