@@ -245,13 +245,17 @@ def Div_E () :
 
     Edr =  ( E[1:,1]*E[1:,0] - E[:-1,1]*E[:-1,0] ) / ( (E[1:,0] - E[:-1,0]) * Emid )
 
-    plt.figure()
-    plt.plot(Emid[:int(N1[-1])],Edr[:int(N1[-1])], color = 'black')
+    rho_eps_eq = '$\\rho_0 \\sin( \\frac{\\pi r }{r_1})$'
 
-    #plt.vlines(r1, ymin = min(Edr) , ymax = max(Edr) , color = 'red' , linestyle = 'dashed' , label = f"$ r_1 = {r1} $")        
+    r1i = int(N1[-1] - 1) 
+
+    plt.figure()
+    plt.plot(Emid,Edr, color = 'black')
+    #plt.plot(Phi[:int(N1[-1]),0], np.sin( Phi[:int(N1[-1]),0] * np.pi / r1 ) * rho0 , color = 'orange', linestyle = (0, (5, 7)), label = rho_eps_eq)
+    plt.vlines(r1, ymin = min(Edr) , ymax = max(Edr) , color = 'red' , linestyle = 'dashed' , label = f"$ r_1 = {r1} $")        
     plt.xlabel('r [m]', fontsize = fs)
-    plt.ylabel('$\\rho_{tot}$ [C/m$^{3}$]', fontsize = fs)
-    #plt.legend()
+    plt.ylabel('$\\rho_{tot}$ / $\\epsilon_0$ [V/m]', fontsize = fs)
+    plt.legend()
 
 def Polarizazion_Density () :
 
@@ -269,11 +273,13 @@ def Charge_Polarisation () :
     Emid = ( E[1:,0] + E[:-1,0] ) / 2
     Dmid = ( D[1:,0] + D[:-1,0] ) / 2
 
-    charge_tot = ( E[1:,1]*E[1:,0] - E[:-1,1]*E[:-1,0] ) / ( (E[1:,0] - E[:-1,0]) * Emid )
-    charge_lib = ( D[1:,1]*D[1:,0] - D[:-1,1]*D[:-1,0] ) / ( (D[1:,0] - D[:-1,0]) * Dmid * epsilon0  )
+    NN1 = N1[-1]
+
+    charge_tot = np.cumsum(( E[1:,1]*E[1:,0] - E[:-1,1]*E[:-1,0] ) / ( (E[1:,0] - E[:-1,0]) * Emid ))*(r1/NN1**2)*np.pi
+    charge_lib = np.cumsum(( D[1:,1]*D[1:,0] - D[:-1,1]*D[:-1,0] ) / ( (D[1:,0] - D[:-1,0]) * Dmid * epsilon0  ))*(r1/NN1**2)*np.pi
     charge_pol = charge_tot - charge_lib
 
-    r1i = int(N1[-1]) - 1
+    r1i = int(N1[-1] - 1) 
 
     print(f"Charge de totale en r = r1 : {charge_tot[r1i]:.2e}")
     print(f"Charge de libre en r = r1 : {charge_lib[r1i]:.2e}")
@@ -281,11 +287,14 @@ def Charge_Polarisation () :
 
     plt.figure()
     plt.plot( Emid , charge_pol , color = 'black')
-    plt.vlines(r1, ymin = min(charge_pol) , ymax = max(charge_pol) , color = 'red' , linestyle = 'dashed' , label = f"$ r_1 = {r1} $")
-    plt.scatter(Emid,np.ones(Emid.size),label = "$r_{midmid}$", marker = '^')
-    plt.scatter(Emid[int(N1[-1])-1],1,label = f"r[r1i]", marker = '^', color = 'gold' )
+    plt.xlabel('r [m]')
+    plt.ylabel('$\\rho$ [C]')
+    #plt.vlines(r1, ymin = min(charge_pol) , ymax = max(charge_pol) , color = 'red' , linestyle = 'dashed' , label = f"$ r_1 = {r1} $")
     
-    plt.legend()
+    #plt.scatter(Emid,np.ones(Emid.size),label = "$r_{midmid}$", marker = '^')
+    #plt.scatter(Emid[r1i],1,label = f"r[{r1i}]", marker = '^', color = 'gold' )
+    
+    #plt.legend()
 
 def Distance () : # Contrôle pour les midPoints
 
@@ -296,14 +305,14 @@ def Distance () : # Contrôle pour les midPoints
 
 #Conv_phi0()
 #Conv_phir1()
-#Phiplot(True)
+#Phiplot(False)
 #Dplot(True)
-#Eplot(True)
+#Eplot(False)
 Div_D()
 Div_E()
-Polarizazion_Density ()
+#Polarizazion_Density ()
 Charge_Polarisation ()
-Distance()
+#Distance()
 
 
 plt.show()
