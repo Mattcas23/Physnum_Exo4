@@ -200,18 +200,18 @@ main(int argc, char* argv[])
         
         if ( k == 0 )
         {
-			diagonal[k] = midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; // pas de k-1 => intégrale gauche nulle 
+			diagonal[k] = midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / ( h[k]) ; // pas de k-1 => intégrale gauche nulle 
 			//lower[k]    = 0 ; // pas de k-1 => intégrale nulle 
-			upper[k]    = - midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
+			upper[k]    = - midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / ( h[k]) ; 
 			rhs[k] 		= h[k] * midPoint[k] * rho_epsilon (midPoint[k],r1,uniform_rho_case,rho0) / 2 ; // pas de k-1 => intégrale gauc
 		}
 		else 
 		{
 			//cout << "k-1 : " << epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) << endl ; 
 			//cout << "k : " << epsilon(midPoint[k],r1,epsilon_a,epsilon_b) << endl ; 
-			diagonal[k] = midPoint[k-1] * epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) / (2 * h[k-1]) + midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
-			lower[k-1]    = - midPoint[k-1] * epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) / (2 * h[k-1]) ; 
-			upper[k]    = - midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / (2 * h[k]) ; 
+			diagonal[k] = midPoint[k-1] * epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) / ( h[k-1]) + midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / ( h[k]) ; 
+			lower[k-1]    = - midPoint[k-1] * epsilon(midPoint[k-1],r1,epsilon_a,epsilon_b) / ( h[k-1]) ; 
+			upper[k]    = - midPoint[k] * epsilon(midPoint[k],r1,epsilon_a,epsilon_b) / ( h[k]) ; 
 			rhs[k] 		= h[k-1] * midPoint[k-1] * rho_epsilon (midPoint[k-1],r1,uniform_rho_case,rho0) / 2 + h[k] * midPoint[k] * rho_epsilon (midPoint[k],r1,uniform_rho_case,rho0) / 2   ; 
 		}
 
@@ -240,6 +240,7 @@ main(int argc, char* argv[])
     // Calculate electric field E and displacement vector D
     vector<double> E(pointCount - 1, 0);
     vector<double> D(pointCount - 1, 0);
+    vector<double> alphadr(pointCount -2 , 0); // dérivée de alpha par rapport à r
     for (int i = 0; i < E.size(); ++i) {
         // TODO calculate E and D
         E[i] = (phi[i] - phi[i+1]) / h[i] ; 
@@ -247,6 +248,11 @@ main(int argc, char* argv[])
         D[i] = epsilon_0 * epsilon(midPoint[i], r1 , epsilon_a , epsilon_b ) * E[i] ; 
         //cout << midPoint[i] << " : " << epsilon(midPoint[i], r1 , epsilon_a , epsilon_b ) << endl ; 
     }
+    
+    //for (int i = 0; i < alpha.size(); ++i) 
+    //{
+		//alphadr[i] = E[i] * epsilon; 
+	//}
 
     // Export data
     {
