@@ -36,9 +36,11 @@ epsilon0 = 8.85418782e-12
 #N1 = np.array([90,110,120,140,150,170,200]) # liste utilisée pour la convergence a)
 
 
-#N1 = np.array([2,5,10,15,20])
-#N2 = N1*int(alpha)
-#N2 = np.array([3,2,20,30,50])
+#N1 = np.array([2,5,10,200])
+#N2 = np.array([3,2,20,200])
+
+#N1 = np.array([10])
+#N2 = np.array([200])
 
 #N1 = np.ones(10)*200
 #N2 = np.arange(1,6,0.5)*200
@@ -191,7 +193,7 @@ def Dplot (multiple) : # Plot le champ de déplacement en fonction de r (multipl
     
 def Phiplot (multiple) : # Plot le potentiel en fonction de r
 
-    phi0_eq = '$\\phi(r) = -\\frac{\\rho_0}{2 \\epsilon_0} (r^2-R^2)$'
+    phi0_eq = '$\\phi(r) = -\\frac{\\rho_0}{4 \\epsilon_0} (r^2-R^2)$'
     
     plt.figure()
     plt.title(f'N1 = {N1[-1]} et N2 = {N2[-1]}', fontsize = fs - 2)
@@ -199,7 +201,7 @@ def Phiplot (multiple) : # Plot le potentiel en fonction de r
 
     if uniform_rho_case : # question a) (rho unif) : on affiche la solution analytique 
 
-        plt.plot(Phi[:,0], -(Phi[:,0]**2 - R**2)/(2), color = 'orange', linestyle = (0, (5, 7)), label = phi0_eq)
+        plt.plot(Phi[:,0], -(Phi[:,0]**2 - R**2)/(4), color = 'orange', linestyle = (0, (5, 7)), label = phi0_eq)
 
     else : # sinon on affiche la zone de changement de permitivité 
 
@@ -224,7 +226,7 @@ def Div_D () : # différences finies pour dr (Attention D est fois epsilon 0 : 
 
     Dmid = ( D[1:,0] + D[:-1,0] ) / 2
 
-    Ddr =  ( D[1:,1]*D[1:,0] - D[:-1,1]*D[:-1,0] ) / ( (D[1:,0] - D[:-1,0]) * Dmid * epsilon0 ) 
+    Ddr =  ( D[1:,1]*D[1:,0] - D[:-1,1]*D[:-1,0] ) / ( (D[1:,0] - D[:-1,0]) * Dmid * epsilon0  ) 
 
         
     
@@ -232,7 +234,7 @@ def Div_D () : # différences finies pour dr (Attention D est fois epsilon 0 : 
     plt.plot(Dmid,Ddr, color = 'black')
     
     #plt.plot(Phi[:,0],np.cumsum(Phi[:,2]*epsilon0))
-    plt.plot(Phi[:,0],(Phi[:,2])) 
+    #plt.plot(Phi[:,0],(Phi[:,2])) 
 
     plt.vlines(r1, ymin = min(Ddr) , ymax = max(Ddr) , color = 'red' , linestyle = 'dashed' , label = f"$ r_1 = {r1} $")        
     plt.xlabel('r [m]', fontsize = fs)
@@ -250,10 +252,10 @@ def Distance () : # Contrôle pour les midPoints
 
 #Conv_phi0()
 #Conv_phir1()
-#Phiplot(False)
-Dplot(False)
-Eplot(False)
-Div_D()     
+Phiplot(True)
+Dplot(True)
+Eplot(True)
+#Div_D()     
 #Distance()
 
 
