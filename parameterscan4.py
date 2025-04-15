@@ -34,7 +34,7 @@ epsilon0 = 8.85418782e-12
 
 
 #N1 = np.array([90,110,120,140,150,170,200]) # liste utilisée pour la convergence a)
-
+#N2 = N1
 
 #N1 = np.array([2,5,10,200])
 #N2 = np.array([3,2,20,200])
@@ -42,20 +42,20 @@ epsilon0 = 8.85418782e-12
 #N1 = np.array([10])
 #N2 = np.array([200])
 
-#N1 = np.ones(10)*200
-#N2 = np.arange(1,6,0.5)*200
+#N1 = np.ones(8)*200
+#N2 = np.arange(2,6,0.5)*200
 #print(N2)
 
-N1 = np.array([200])
-N2 = N1 
+N1 = np.array([1000])
+N2 = int((R-r1)/r1)*N1 
 
 if N1.size != N2.size :
     
     raise ValueError("La taille de N1 doit être la même que celle de N2")
 
-if uniform_rho_case and N1 != N2 :
+#if uniform_rho_case and N1 != N2 :
 
-    raise ValueError("Pour le a) on doit avoir N1 = N2")
+    #raise ValueError("Pour le a) on doit avoir N1 = N2")
 
 if uniform_rho_case and rho0!=epsilon0 :
 
@@ -130,7 +130,7 @@ def Conv_phir1 ( norder = 3 ) : # ( question b) ordre 2 )
 
 def Eplot (multiple) : # Plot le champ électrique en fonction de r
 
-    E0_eq = '$ E(r) = \\rho_0 \\frac{r}{ \\epsilon_0} $'
+    E0_eq = '$ E(r) = \\rho_0 \\frac{r}{2 \\epsilon_0} $'
 
     plt.figure()
     plt.title(f'N1 = {N1[-1]} et N2 = {N2[-1]}', fontsize = fs - 2)
@@ -138,7 +138,7 @@ def Eplot (multiple) : # Plot le champ électrique en fonction de r
 
     if uniform_rho_case : # question a) (rho unif) : on affiche la solution analytique 
 
-        plt.plot(E[:,0], E[:,0] , color = 'orange', linestyle = (0, (5, 7)) , label = E0_eq) # rho0 = eps0 
+        plt.plot(E[:,0], E[:,0]/2 , color = 'orange', linestyle = (0, (5, 7)) , label = E0_eq) # rho0 = eps0 
 
     else : # sinon on affiche la zone de changement de permitivité 
 
@@ -161,7 +161,7 @@ def Eplot (multiple) : # Plot le champ électrique en fonction de r
 
 def Dplot (multiple) : # Plot le champ de déplacement en fonction de r (multiple = true : met toutes les courbes pour diff N)
 
-    D0_eq = '$ D(r) = r \\rho_0  $'
+    D0_eq = '$ D(r) = r \\frac{\\rho_0}{2} $'
 
     plt.figure()
     plt.title(f'N1 = {N1[-1]} et N2 = {N2[-1]}', fontsize = fs - 2)
@@ -169,7 +169,7 @@ def Dplot (multiple) : # Plot le champ de déplacement en fonction de r (multipl
 
     if uniform_rho_case : # question a) (rho unif) : on affiche la solution analytique 
 
-        plt.plot(D[:,0], epsilon0 * D[:,0] , color = 'orange', linestyle = (0, (5, 7)), label = D0_eq)
+        plt.plot(D[:,0], epsilon0 * D[:,0] / 2 , color = 'orange', linestyle = (0, (5, 7)), label = D0_eq)
 
     else : # sinon on affiche la zone de changement de permitivité 
         plt.vlines(r1, ymin = min(D[:,1]) , ymax = max(D[:,1]) , color = 'red' , linestyle = 'dashed' , label = f"$ r_1 = {r1} $")
@@ -226,37 +226,84 @@ def Div_D () : # différences finies pour dr (Attention D est fois epsilon 0 : 
 
     Dmid = ( D[1:,0] + D[:-1,0] ) / 2
 
-    Ddr =  ( D[1:,1]*D[1:,0] - D[:-1,1]*D[:-1,0] ) / ( (D[1:,0] - D[:-1,0]) * Dmid * epsilon0  ) 
+    Ddr =  ( D[1:,1]*D[1:,0] - D[:-1,1]*D[:-1,0] ) / ( (D[1:,0] - D[:-1,0]) * Dmid * epsilon0  )
 
-        
-    
+    rho_eps_eq = '$\\rho_0 \\sin( \\frac{\\pi r }{r_1})$'
+
     plt.figure()
     plt.plot(Dmid,Ddr, color = 'black')
-    
-    #plt.plot(Phi[:,0],np.cumsum(Phi[:,2]*epsilon0))
-    #plt.plot(Phi[:,0],(Phi[:,2])) 
 
+    plt.plot(Phi[:int(N1[-1]),0], np.sin( Phi[:int(N1[-1]),0] * np.pi / r1 ) * rho0 , color = 'orange', linestyle = (0, (5, 7)), label = rho_eps_eq)
     plt.vlines(r1, ymin = min(Ddr) , ymax = max(Ddr) , color = 'red' , linestyle = 'dashed' , label = f"$ r_1 = {r1} $")        
     plt.xlabel('r [m]', fontsize = fs)
-    plt.ylabel('$\\rho_{lib}$ [C/m$^{3}$]', fontsize = fs)
-    plt.legend()  
+    plt.ylabel('$\\rho_{lib}$ \ $\\epsilon_0$ [V/m]', fontsize = fs)
+    plt.legend()
+
+def Div_E () :
+
+    Emid = ( E[1:,0] + E[:-1,0] ) / 2
+
+    Edr =  ( E[1:,1]*E[1:,0] - E[:-1,1]*E[:-1,0] ) / ( (E[1:,0] - E[:-1,0]) * Emid )
+
+    plt.figure()
+    plt.plot(Emid[:int(N1[-1])],Edr[:int(N1[-1])], color = 'black')
+
+    #plt.vlines(r1, ymin = min(Edr) , ymax = max(Edr) , color = 'red' , linestyle = 'dashed' , label = f"$ r_1 = {r1} $")        
+    plt.xlabel('r [m]', fontsize = fs)
+    plt.ylabel('$\\rho_{tot}$ [C/m$^{3}$]', fontsize = fs)
+    #plt.legend()
+
+def Polarizazion_Density () :
+
+    rmid = D[:,0]
+    P = D[:,1] + epsilon0 * E[:,1]
     
+    plt.figure()
+    plt.plot(rmid,P,color = 'black')
+    plt.xlabel('r [m]', fontsize = fs)
+    plt.ylabel('P [C/m$^{2}$]', fontsize = fs)
+    
+
+def Charge_Polarisation () :
+
+    Emid = ( E[1:,0] + E[:-1,0] ) / 2
+    Dmid = ( D[1:,0] + D[:-1,0] ) / 2
+
+    charge_tot = ( E[1:,1]*E[1:,0] - E[:-1,1]*E[:-1,0] ) / ( (E[1:,0] - E[:-1,0]) * Emid )
+    charge_lib = ( D[1:,1]*D[1:,0] - D[:-1,1]*D[:-1,0] ) / ( (D[1:,0] - D[:-1,0]) * Dmid * epsilon0  )
+    charge_pol = charge_tot - charge_lib
+
+    r1i = int(N1[-1]) - 1
+
+    print(f"Charge de totale en r = r1 : {charge_tot[r1i]:.2e}")
+    print(f"Charge de libre en r = r1 : {charge_lib[r1i]:.2e}")
+    print(f"Charge de polarisation en r = r1 : {charge_pol[r1i]:.2e}")
+
+    plt.figure()
+    plt.plot( Emid , charge_pol , color = 'black')
+    plt.vlines(r1, ymin = min(charge_pol) , ymax = max(charge_pol) , color = 'red' , linestyle = 'dashed' , label = f"$ r_1 = {r1} $")
+    plt.scatter(Emid,np.ones(Emid.size),label = "$r_{midmid}$", marker = '^')
+    plt.scatter(Emid[int(N1[-1])-1],1,label = f"r[r1i]", marker = '^', color = 'gold' )
+    
+    plt.legend()
 
 def Distance () : # Contrôle pour les midPoints
 
-    plt.figure()
-    plt.title(f'N1 = {N1[-1]} et N2 = {N2[-1]}', fontsize = fs - 2)
+    #plt.title(f'N1 = {N1[-1]} et N2 = {N2[-1]}', fontsize = fs - 2)
     plt.scatter(Phi[:,0],np.ones(Phi[:,0].size),label = "$r_i$")
     plt.scatter(D[:,0],np.ones(D[:,0].size),label = "$r_{i+1/2}$" , marker='+')
     plt.legend(fontsize = fs - 2.5)
 
 #Conv_phi0()
 #Conv_phir1()
-Phiplot(True)
-Dplot(True)
-Eplot(True)
-#Div_D()     
-#Distance()
+#Phiplot(True)
+#Dplot(True)
+#Eplot(True)
+Div_D()
+Div_E()
+Polarizazion_Density ()
+Charge_Polarisation ()
+Distance()
 
 
 plt.show()
